@@ -1,0 +1,24 @@
+data:
+  corpus: [] # Corpus file paths separated by commas (Required)
+  benchmark_data: # Benchmarking data filepath (Optional)
+
+retriever:
+  chunk_size: 400 # Maximum number of characters in each chunk of text
+  text_overlap: 50 # Number of overlapping characters between consecutive chunks
+  vector_store:
+    embeddings: ["huggingface_instruct_embeddings"] #other available options are ["all_minilm_embeddings","bgem3_embeddings","openai_embeddings"]
+    database: ["Chroma"] #other option is ["FAISS"]
+    persist_directory: ["/home/roopesh_d/Documents/autorag"] # Directory to persist the vector store
+  n_rerankers: 1 # Number of re-rankers to use for ranking retrieved documents
+  retriever_benchmark_metrics:
+    context_precision: true # Calculate precision metric for retrieved contexts
+    context_recall: true # Calculate recall metric for retrieved contexts
+
+generation:
+  prompt: [] # List of prompts for the generation model
+  temperature: 0.1 # Model temperature for the generation model
+  llm: [] # List of language models for generation
+  generation_benchmark_metrics:
+    answer_relevancy: true # Calculate relevance metric for generated answers
+    answer_similarity: true # Calculate similarity metric for generated answers
+    answer_correctness: true 
