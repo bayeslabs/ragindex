@@ -79,7 +79,7 @@ class DataProcessor:
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Data Processing")
-    parser.add_argument("--config", type=str, default="/teamspace/studios/this_studio/ragKIT/config/sample_config.yaml",help="Path to the configuration file")
+    parser.add_argument("--config", type=str, default="ragKIT/config/sample_config.yaml",help="Path to the configuration file")
     parser.add_argument("--user_files", nargs='+', type=str, default=None, help="Path to the user-specified file to be processed")
     parser.add_argument("--chunk_size", type=int, default=400, help="Chunk size for splitting text")
     parser.add_argument("--text_overlap", type=int, default=50, help="Text overlap for splitting text")
