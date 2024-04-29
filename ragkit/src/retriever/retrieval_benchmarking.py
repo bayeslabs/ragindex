@@ -1,14 +1,19 @@
 import yaml 
 import pandas as pd
 import os
+import pickle
 from datasets import Dataset
 from ragas import evaluate
+from statistics import mean 
+import argparse
 from ragas.testset.evolutions import simple, reasoning, multi_context
 from ragas.metrics import (
     context_precision,
     context_recall,
 )
-
+# with open('/teamspace/studios/this_studio/ragKIT/Data/mydict.pkl', 'rb') as fp:
+#     dict_data = pickle.load(fp)
+    
 # with open('config.yaml', 'r') as file:
 #     config_file = yaml.safe_load(file)
 
@@ -33,54 +38,83 @@ from ragas.metrics import (
 
 # # Create the DataFrame
 # df_retrieval = pd.DataFrame(data)
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+os.environ["OPENAI_API_KEY"] = "OPENAI_API_KEY"
 
 class DataFrameValidator:
-    def __init__(self):
-        pass
-
-    def validate_dataframe(self, df_retrieval, config_file):
+    def __init__(self,config,testset_df):
+        self.config = config
+        self.dict_data = testset_df
+    
+    def validate_dataframe(self):
         """
         Validates the format of the input DataFrame `df_retrieval`.
         
         Performs benchmarking using RAGAS
         """
         
-        # with open(config_file, 'r') as file:
-        #     return yaml.safe_load(file)
-        # metrics = config['metrics']
-        # for key,value in config_file['retriever']['retriever_benchmark_metrics'].items():
-        #     if value == True:
-        #         metrics.append(key)
+        max_combo = None
+        max_benchmark_avg = 0
+        for key, df_retrieval in self.dict_data.items():
+            metrics = [context_precision,context_recall]        
+            print(type(df_retrieval))
+            print(df_retrieval.head(1))
+            config = self.config['retriever']['retriever_benchmark_metrics']
+            filtered_metrics = []
 
-        metrics = [context_precision,context_recall]        
-        config = config_file['retriever']['retriever_benchmark_metrics']
-        filtered_metrics = []
+            for metric in metrics:
+                if config[metric.name]:
+                    filtered_metrics.append(metric)
 
-        for metric in metrics:
-            if config[metric.name]:
-                filtered_metrics.append(metric)
+            # Check if the input is a DataFrame
+            if not isinstance(df_retrieval, pd.DataFrame):
+                print("Input is not a pandas DataFrame.")
+                return False
+            
+            # Check if the required columns exist
+            required_columns = ["question", "ground_truth","contexts"]
+            if not set(required_columns).issubset(df_retrieval.columns):
+                print("DataFrame is missing one or more required columns.")
+                return False
+            testsetdf = Dataset.from_pandas(df_retrieval)
+            result = evaluate(
+                    dataset=testsetdf, 
+                    metrics = filtered_metrics,
+                    )
+            scores_list = []
+            for metric, score in result.items(): 
+                scores_list.append(score)
+            avg = mean(scores_list)
+            print("average_metrics", avg)
+            if avg > max_benchmark_avg:
+                max_benchmark_avg=avg
+                max_combo=key
 
-        # Check if the input is a DataFrame
-        if not isinstance(df_retrieval, pd.DataFrame):
-            print("Input is not a pandas DataFrame.")
-            return False
-        
-        # Check if the required columns exist
-        required_columns = ["question", "ground_truth","contexts"]
-        if not set(required_columns).issubset(df_retrieval.columns):
-            print("DataFrame is missing one or more required columns.")
-            return False
-        testset_df = Dataset.from_pandas(df_retrieval)
-        result = evaluate(
-                dataset=testset_df, 
-                metrics = filtered_metrics,
-                )
-        print(result)
-        
+        for key,df in self.dict_data.items():
+            if key == max_combo:
+                return df
+
+             
+            
+if __name__=="__main__":
+
+    parser = argparse.ArgumentParser(description='Retrieval Benchmarking')
+    parser.add_argument('--dict_data',type=str, required=True)                  
+    parser.add_argument("--config", type=str, default="/teamspace/studios/this_studio/ragpy/config/sample_config.yaml")
+
+    args = parser.parse_args() 
+    dataset = args.dict_data
+
+    config_path = "/teamspace/studios/this_studio/ragpy/config/sample_config.yaml"
+
+    with open(config_path, 'r') as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+
+    df = DataFrameValidator(testset_df=dataset, config=config).validate_dataframe()
+
+
 
 # obj = DataFrameValidator()
-# obj.validate_dataframe(df_retrieval,config_file)
+# obj.validate_dataframe(dict_data,config_file)
 
 
 
