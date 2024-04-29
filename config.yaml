@@ -1,5 +1,5 @@
 data:
- corpus: [ragpy/data/sample_data/rag_for_llms.pdf,ragpy/data/sample_data/enterprise_survey.csv, ./ragpy/data/sample_data/text.txt]
+ corpus: [./ragpy/data/sample_data/rag_for_llms.pdf,./ragpy/data/sample_data/enterprise_survey.csv, ./ragpy/data/sample_data/text.txt]
  benchmark_data: './ragpy/Data/syntheticdataset.csv'
 
 retriever:
