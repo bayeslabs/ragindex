@@ -1,4 +1,4 @@
-# from langchain.docstore.document import Document
+from langchain.docstore.document import Document
 from FlagEmbedding import FlagModel
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import CrossEncoder as ce
@@ -7,9 +7,9 @@ import cohere
 import argparse
 import os
 import sys
+sys.path.append("./ragkit/src")
 import pickle
 from langchain.text_splitter import CharacterTextSplitter
-sys.path.append('/teamspace/studios/this_studio/ragKIT/src')
 import yaml
 from dotenv import load_dotenv
 from langchain.embeddings import OpenAIEmbeddings
@@ -17,14 +17,14 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from embedding_creation.embedding_generator import EmbeddingGenerator 
+from embeddings_creation.embedding_generator import EmbeddingGenerator 
 from PyPDF2 import PdfReader
-from DataPreprocessing.data_loader import DataProcessor
-from Generation.generation_benchmarking import SyntheticDataGenerator
-import cohere
-import pandas as pd
-from cohere.types.rerank_response import RerankResponse
-from langchain_community.document_loaders import PyPDFLoader
+from dataprocessing.data_loader import DataProcessor
+# from generator.generation_benchmarking import SyntheticDataGenerator
+# # import cohere
+# # import pandas as pd
+# # from cohere.types.rerank_response import RerankResponse
+# # from langchain_community.document_loaders import PyPDFLoader
 
 
 class Reranking:
@@ -61,15 +61,12 @@ class Reranking:
                     l2.append(doc)
                 df.at[k,'contexts']=l2
                 df_dict[df_name] = df
-                file_path = f'ragKIT/savedireectory/{df_name}.csv'
+                file_path = f'ragkit/savedirectory/{df_name}.csv'
                 df.to_csv(file_path, index=False)
                 
         return df_dict
         
     def rerank_documents(self, query, documents, top_n):
-        # print("reranking called")
-        # api_key = os.getenv('COHERE_API_KEY')
-        # client=cohere.Client(api_key)
         results = self.client.rerank(model="rerank-english-v3.0", query=query, documents=documents, top_n=top_n, return_documents=True)
         r1 = results.results
         document_texts = [result.document.text for result in r1]
@@ -80,10 +77,8 @@ class Reranking:
   
 if __name__ == "__main__":
 
-    config_file='/teamspace/studios/this_studio/ragKIT/config/sample_config.yaml'
+    config_file='./ragkit/config/sample_config.yaml'
     parser = argparse.ArgumentParser(description='Retrieval and Reranking')
-    # parser.add_argument("--config", type=str, default="/teamspace/studios/this_studio/ragKIT/config/sample_config.yaml",
-    #                     help="Path to the configuration file")
     parser.add_argument('--top_k',help='The number of chunks to be retrieved',required=True)
     args = parser.parse_args()
 
