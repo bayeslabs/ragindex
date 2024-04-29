@@ -15,7 +15,6 @@ import argparse
 nltk.download('wordnet')
 nltk.download('stopwords')
 nltk.download('punkt')
-
 class DataProcessor:
     def __init__(self, config):
         # Initialize class variables
