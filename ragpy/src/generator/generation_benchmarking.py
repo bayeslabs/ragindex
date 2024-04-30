@@ -1,4 +1,5 @@
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
@@ -43,7 +44,7 @@ class SyntheticDataGenerator:
             self.critic_llm,
             self.embeddings,
         )
-        self.save_dir = config["data"]["benchmark_data"]
+        self.save_dir = config["data"]["save_dir"]
         self.distributions = {
             simple: 0.8,
             multi_context: 0.2,
@@ -60,7 +61,9 @@ class SyntheticDataGenerator:
             Synthetic dataset amd saves a copy to the current working directory or any custom path. 
         """
         testset = self.generator.generate_with_langchain_docs(self.documents, num_docs, self.distributions, raise_exceptions=False)
-        return testset.to_dataset().remove_columns(['contexts', 'evolution_type','episode_done','metadata']).to_csv(self.save_dir + "/syntheticdataset.csv")
+        save_path=self.save_dir + "/synthetic_data/syntheticdataset.csv"
+        testset.to_dataset().remove_columns(['contexts', 'evolution_type','episode_done','metadata']).to_csv(save_path)
+        return save_path
 
 
 
