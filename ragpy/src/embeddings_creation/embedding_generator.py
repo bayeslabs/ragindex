@@ -7,11 +7,12 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 import torch
 import torch.nn.functional as F
 import os
+import itertools
 from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+# from sklearn.metrics.pairwise import cosine_similarity
+# import numpy as np
 from langchain_openai import OpenAIEmbeddings
 import yaml
 # from dotenv import load_dotenv
@@ -38,7 +39,7 @@ class EmbeddingGenerator:
         if not docs:
             return "Chunks list is empty"
         embedding_function = HuggingFaceInstructEmbeddings()
-        if vectorstore == "faiss":
+        if vectorstore == "Faiss":
             persist_directory = os.path.join(self.config["retriever"]["vector_store"]["persist_directory"][0], "huggingface_instruct_embeddings_faiss")
             db = FAISS.from_documents(docs, embedding_function)
             db.save_local(persist_directory)
@@ -59,7 +60,7 @@ class EmbeddingGenerator:
         if not docs:
             return "Chunks list is empty"
         embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-        if vectorstore == "faiss":
+        if vectorstore== "Faiss":
             persist_directory = os.path.join(self.config["retriever"]["vector_store"]["persist_directory"][0], "all_minilm_embeddings_faiss")
             db = FAISS.from_documents(docs, embedding_function)
             db.save_local(persist_directory)
@@ -81,7 +82,7 @@ class EmbeddingGenerator:
         if not docs:
             return "Chunks list is empty"
         embedding_function = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
-        if vectorstore == "faiss":
+        if vectorstore == "Faiss":
             persist_directory = os.path.join(self.config["retriever"]["vector_store"]["persist_directory"][0], "bgem3_embeddings_faiss")
             db = FAISS.from_documents(docs, embedding_function)
             db.save_local(persist_directory)
@@ -104,7 +105,7 @@ class EmbeddingGenerator:
             return "Chunks list is empty"
         if self.openai_api_key:
             embedding_function = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
-            if vectorstore == "faiss":
+            if vectorstore == "Faiss":
                 persist_directory = os.path.join(self.config["retriever"]["vector_store"]["persist_directory"][0], "openai_embeddings_faiss")
                 db = FAISS.from_documents(docs, embedding_function)
                 db.save_local(persist_directory)
@@ -121,7 +122,9 @@ class EmbeddingGenerator:
         embedding_methods = self.config["retriever"]["vector_store"]["embedding"]
         vectorstore_option = self.config["retriever"]["vector_store"]["database"]
         databases = []
-        for embedding_method in embedding_methods:
+        permutations = list(itertools.product(embedding_methods, vectorstore_option))
+        for embedding_method,vectorstore_option in permutations:
+            # print("creating db with embeddings:{} and vector store:{}".format(embedding_method,vectorstore_option))
             try:
                 if embedding_method == "huggingface_instruct_embeddings":
                     db = self.huggingface_instruct_embeddings(chunks, vectorstore_option)
@@ -170,5 +173,3 @@ if __name__ == "__main__":
 
     for db in dbs:
         print(db)
-
-
