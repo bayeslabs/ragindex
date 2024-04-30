@@ -8,7 +8,7 @@ from PyPDF2 import PdfReader
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter,RecursiveCharacterTextSplitter
 import argparse
 
 # Download necessary NLTK resources
@@ -21,8 +21,8 @@ class DataProcessor:
         self.config = config
         self.stopwords = set(stopwords.words("english"))
         self.lemmatizer = WordNetLemmatizer()
-        self.text_splitter = CharacterTextSplitter(
-            separator=" ",
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            # separator=" ",
             chunk_size=self.config["retriever"]["chunk_size"],
             chunk_overlap=self.config["retriever"]["text_overlap"]
         )
@@ -106,9 +106,3 @@ if __name__ == "__main__":
     # Call process_data method to get chunks
     chunks = processor.process_data()
 
-    # Return the chunks
-    #for i, chunk in enumerate(chunks):
-        #print(f"\n{chunk}")
-    if args.user_files:
-        print("Updated data section of the configuration file:")
-        print(yaml.dump(config["data"], default_flow_style=False))
