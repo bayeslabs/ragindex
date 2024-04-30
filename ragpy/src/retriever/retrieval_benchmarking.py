@@ -1,6 +1,6 @@
 import yaml 
 import pandas as pd
-import os
+import os,ast
 import pickle
 from datasets import Dataset
 from ragas import evaluate
@@ -38,12 +38,17 @@ from ragas.metrics import (
 
 # # Create the DataFrame
 # df_retrieval = pd.DataFrame(data)
-os.environ["OPENAI_API_KEY"] = "OPENAI_API_KEY"
 
-class DataFrameValidator:
-    def __init__(self,config,testset_df):
+class RetrievalBenchmarking:
+    def __init__(self,config,datasets_dir_path):
         self.config = config
-        self.dict_data = testset_df
+        d={}
+        
+        for df_name in os.listdir(datasets_dir_path):
+          if ".csv" in df_name:
+            d[df_name]=pd.read_csv(os.path.join(datasets_dir_path,df_name)).head(1)
+
+        self.dict_data = d
     
     def validate_dataframe(self):
         """
@@ -55,14 +60,15 @@ class DataFrameValidator:
         max_combo = None
         max_benchmark_avg = 0
         for key, df_retrieval in self.dict_data.items():
-            metrics = [context_precision,context_recall]        
-            print(type(df_retrieval))
-            print(df_retrieval.head(1))
-            config = self.config['retriever']['retriever_benchmark_metrics']
+            default_metrics = [context_precision,context_recall]        
+            # print(type(df_retrieval))
+            # print(df_retrieval.head(1))
+            df_retrieval['contexts'] = df_retrieval['contexts'].apply(ast.literal_eval)
+            config_metrics = self.config['retriever']['retriever_benchmark_metrics']
             filtered_metrics = []
 
-            for metric in metrics:
-                if config[metric.name]:
+            for metric in default_metrics:
+                if config_metrics[metric.name]:
                     filtered_metrics.append(metric)
 
             # Check if the input is a DataFrame
@@ -91,30 +97,24 @@ class DataFrameValidator:
 
         for key,df in self.dict_data.items():
             if key == max_combo:
-                return df
+                return df,max_combo
 
              
             
 if __name__=="__main__":
 
     parser = argparse.ArgumentParser(description='Retrieval Benchmarking')
-    parser.add_argument('--dict_data',type=str, required=True)                  
-    parser.add_argument("--config", type=str, default="/teamspace/studios/this_studio/ragpy/config/sample_config.yaml")
+    parser.add_argument('--retrieved_data_dir',type=str, required=True,help="folder should contain benchmarking dataset with columns as question ground truth and contexts ")                  
+    parser.add_argument("--config", type=str, default="./config.yaml")
 
     args = parser.parse_args() 
-    dataset = args.dict_data
-
-    config_path = "/teamspace/studios/this_studio/ragpy/config/sample_config.yaml"
-
-    with open(config_path, 'r') as file:
+    datasets_dir = args.retrieved_data_dir
+    
+    with open(args.config, 'r') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
 
-    df = DataFrameValidator(testset_df=dataset, config=config).validate_dataframe()
-
-
-
-# obj = DataFrameValidator()
-# obj.validate_dataframe(dict_data,config_file)
+    df,max_combo = RetrievalBenchmarking(datasets_dir_path=datasets_dir, config=config).validate_dataframe()
+    print("max cobo found at{}".format(max_combo))
 
 
 
