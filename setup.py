@@ -8,13 +8,17 @@ setup(
     packages=
     [
         "ragpy",
-        "ragpy.src.Retriever",
-        "ragpy.src.Generation",
-        "ragpy.src.DataPreprocessing"
+        "ragpy.src.dataprocessing",
+        "ragpy.src.embeddings_creation",
+        "ragpy.src.retriever",
+        "ragpy.src.generator"
     ],
-    py_modules=["ragpy.src.DataPreprocessing.data_loader","ragpy.src.embedding_creation.embedding_generator","ragpy.src.Retriever.retrieval_benchmarking","ragpy.src.Retriever.retrieval","ragpy.src.Generation.generation_benchmarking","ragpy.src.Generation.main_body","ragpy.src.Generation.models_module","ragpy.src.Generation.prompt"],
+    py_modules=["ragpy.src.dataprocessing.data_loader",
+    "ragpy.src.embeddings_creation.embedding_generator",
+    "ragpy.src.retriever.retrieval",
+    "ragpy.src.retriever.retrieval_benchmarking",
+    "ragpy.src.generator.generation_benchmarking"],
     # packages = find_packages()
 
     # Additional metadata
 )
-
