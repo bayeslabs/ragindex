@@ -1,19 +1,18 @@
-from models_module import models_mod as mm
+import sys
+from ragpy.src.generator.models_module import models_mod as mm
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.chains import RetrievalQA
-from prompt import CustomPromptTemplate
+from ragpy.src.generator.prompt import CustomPromptTemplate
 import pandas as pd
+from itertools import product
 import yaml
-
-# Open the YAML file
-with open('config.yaml', 'r') as file:
-    data = yaml.safe_load(file)
+import argparse
 
 
-class RAG():
+class Generator_response():
     def __init__(self,db=None,retriever=None,query=None,
-                max_tokens = None,temperature= None):
+                max_tokens = None,temperature= None,config = None):
         """
         Initializes a new instance of the class.
 
@@ -26,13 +25,11 @@ class RAG():
         self.retriever = retriever
         self.db = db
         self.query = query
-        self.max_tokesn = max_tokens
-        self.max_tokens = max_tokens
+        self.max_tokens = 249
         self.temperature = temperature
-
-    def read_df(self,path):
-        df = pd.read_csv(path)
-        return df 
+        self.data = config
+    
+    
     def format_docs(self,docs):
         """
         Format the given list of documents into a single string.
@@ -82,65 +79,81 @@ class RAG():
         return rag_chain
 
 
-    def main(self,query):
-        """
-        Executes the main logic of the function using CustomPromptTemplate, retriever, datatype, objects, and llm.
-        If the datatype is "string_datatype", formats the full prompt with context and question, then invokes llm.
-        Otherwise, constructs a rag_chain pipeline and invokes it with the query.
-        
-        Parameters:
-            query: The query for which main logic is executed.
-        
-        Returns:
-            The result of executing the main logic.
-        """
-        domain = data['generator']['prompt_template']['domain']
-        prompt_type = data['generator']['prompt_template']['prompt_type']
+    def main(self, query):
+        domain = self.data['generator']['prompt_template']['domain']
+        prompt_type = self.data['generator']['prompt_template']['prompt_type']
         prompt = CustomPromptTemplate(domain)
         prompt = prompt.main(prompt_type)
-        retriever,datatype = self.retriever_fun()
-        objects = mm()
+        retriever, datatype = self.retriever_fun()
+        objects = mm(config=self.data)
+        models = {} # Dictionary to store model instances
         try:
-            openai_model = objects.main("openai")
-            fireworks_model = objects.main("opne_source")
-            hugging_model =  objects.main("hugging_face")
-            if datatype=="string_datatype":   
-                full_prompt = prompt.format(context=retriever,question=query)
-                openai_result = openai_model.invoke(full_prompt)
-                fireworks_result = fireworks_model(full_prompt)
-                hugging_face_result = hugging_model.invoke(full_prompt)
-                return openai_result, fireworks_result, hugging_face_result
+            temp = self.data['generator']['model_config']['temperature']
+            # temp = [0.1,0.7]
+            model_type = self.data['generator']['models']['model_type']
+            if model_type == "openai":
+                model_list = self.data['generator']['models']['open_ai_model']
+                # model_list = ["gpt-3.5-turbo"]
+                combinations = product(temp, model_list)
+
+                for i in combinations:
+                    model_key = f"openai_{i[1]}_{i[0]}" # Unique key for each model instance
+                    models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
             else:
-                openai_result = self.chains(retriever,prompt,openai_model).invoke(query)
-                fireworks_result =self.chains(retriever,prompt,openai_model).invoke(query)
-                hugging_face_result =self.chains(retriever,prompt,openai_model).invoke(query)
-            return openai_result, fireworks_result, hugging_face_result
+                model_list = self.data['generator']['models']['hugging_face_model']
+                combinations = product(temp, model_list)
+                for i in combinations:
+                    model_key = f"hugging_face_{i[1]}_{i[0]}" # Unique key for each model instance
+                    models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
+            
+            if datatype == "string_datatype":
+                full_prompt = prompt.format(context=retriever, question=query)
+                results = {}
+                if model_type == "openai":
+                    for model_key, model in models.items():
+                        results[model_key] = model.invoke(full_prompt).content
+                else:
+                    for model_key, model in models.items():
+                        results[model_key] = model.invoke(full_prompt)
+                return results
+            else:
+                results = {}
+                for model_key, model in models.items():
+                    results[model_key] = self.chains(retriever, prompt, model).invoke(query)
+                return results
         except Exception as e:
             print(e)
-            return openai_result, fireworks_result, "None"
+            return "None"
 if __name__=="__main__":
-    query = "What are the considerations for treating elderly patients with SCLC?"
-    context = "[Document(page_content='viewed in th is light, that is, there must be a toxicity-to-beneﬁting the studies to be stopped early (250, 251).ratio.The optimal management of the elderly with SCLC is anA Phase II study of irinotecan plus cisplatin yielded a CR ofimportant issue as 40% of those who present with the disease29% and an overall response rate of 86% with a median survivalare over 70 years old. Studies that investigated this area suggestof 13.2 months in patients with extensive disease SCLC (269).that a reasonably high initial dose of chemotherapy is importantThis has led to an RCT of irinotecan and cisplatin versus etopo-and that the elderly tolerate radiotherapy well (274–276). In-side and cisplatin in patients with extensive disease SCLC. Thedeed, elderly patients with good performance status and normalstudy was halted early because of a signiﬁcant survival advantageorgan function do as well with optimal chemotherapy dosesfor the patients randomized to irinotecan plus cisplatin (medianas their younger', metadata={'page': 103, 'source': '/content/drive/MyDrive/RAG BASED/MergedFiles1.pdf'})]"
-    rag_object = RAG(retriever=context)
-    # df = rag_object.read_df()
-    # df.apply(main_body, axis=1)
-    result1,result2,result3 = rag_object.main(query)
-    print("---------------------------------------------------------------------------------------------------")
-    print("---------------------------------------------------------------------------------------------------")
-    print("Results from OpenAI model:")
-    print(result1)
-    print("---------------------------------------------------------------------------------------------------")
-    print("---------------------------------------------------------------------------------------------------")
-    print("Results from fireworks api model:")
-    print(result2)
-    print("---------------------------------------------------------------------------------------------------")
-    print("---------------------------------------------------------------------------------------------------")
-    print("Result from hugging face model:")
-    print(result3)
-    #  print("--------------------------------------------------------------------")
-    # print(result1,result2,result3,sep="\n")
+    with open('./config.yaml', 'r') as file:
+        data = yaml.safe_load(file)
+        # Argument parser setup
+    parser = argparse.ArgumentParser(description='Generator Response for RAG')
+    parser.add_argument('--query', type=str, default='What are the considerations for treating elderly patients with SCLC?', help='The query for which main logic is executed.')
+    parser.add_argument('--context', type=str, default='[Document(page_content=\'viewed in th is light, that is, there must be a toxicity-to-beneﬁting the studies to be stopped early (250, 251).ratio.The optimal management of the elderly with SCLC is anA Phase II study of irinotecan plus cisplatin yielded a CR ofimportant issue as 40% of those who present with the disease29% and an overall response rate of 86% with a median survivalare over 70 years old. Studies that investigated this area suggestof 13.2 months in patients with extensive disease SCLC (269).that a reasonably high initial dose of chemotherapy is importantThis has led to an RCT of irinotecan and cisplatin versus etopo-and that the elderly tolerate radiotherapy well (274–276). In-side and cisplatin in patients with extensive disease SCLC. Thedeed, elderly patients with good performance status and normalstudy was halted early because of a signiﬁcant survival advantageorgan function do as well with optimal chemotherapy dosesfor the patients randomized to irinotecan plus cisplatin (medianas their younger\', metadata={\'page\': 103, \'source\': \'/content/drive/MyDrive/RAG BASED/MergedFiles1.pdf\'})]', help='The context for the query.')
+    parser.add_argument('--model_type', type=str, default='openai', help='The type of model to use. Can be "openai", "fireworks", or "hugging_face".')
+    parser.add_argument('--chain_type', type=str, default='simple', help='The type of chain to use. Can be "simple", or "retrieval"')
+    parser.add_argument('--domain', type=str, default='Healthcare', help='It can be anything.')
+    parser.add_argument('--prompt_type', type=str, default='general', help='The type of prompt to use. Can be "general","custom" or "specific",')
+    
+    # Parse arguments
+    args = parser.parse_args()
 
+    # Check if provided arguments match expected values in the config file
+    if data["generator"]["models"]:
+        data["generator"]["models"]["model_type"] = args.model_type
+    if data["generator"]["chain_type"]:
+        data["generator"]["chain_type"] = args.chain_type   
+    if data["generator"]["prompt_template"]["domain"]:   
+        data["generator"]["prompt_template"]["domain"] = args.domain   
+    if data["generator"]["prompt_template"]["prompt_type"]:  
+        data["generator"]["prompt_template"]["prompt_type"] = args.prompt_type
 
-
-         
-
+    # Create an instance of the Generation_Benchmarking class and run the benchmarks
+    rag_object = Generator_response(retriever= args.context,config=data)
+    results = rag_object.main(args.query) 
+   
+    print("---------------------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------")
+    print("Results from model:")
+    print(results)
