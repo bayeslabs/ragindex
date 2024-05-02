@@ -84,7 +84,11 @@ class Generator_response():
         prompt_type = self.data['generator']['prompt_template']['prompt_type']
         prompt = CustomPromptTemplate(domain)
         prompt = prompt.main(prompt_type)
-        retriever, datatype = self.retriever_fun()
+        try:
+            retriever, datatype = self.retriever_fun()
+        except Exception as e:
+            print(f"Error retrieving retriever: {e}")
+            return "both retriever and db are not provided."   
         objects = mm(config=self.data)
         models = {} # Dictionary to store model instances
         try:
