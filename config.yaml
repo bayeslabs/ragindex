@@ -1,42 +1,33 @@
 data:
- corpus: [./ragpy/data/sample_data/rag_for_llms.pdf,./ragpy/data/sample_data/enterprise_survey.csv, ./ragpy/data/sample_data/text.txt]
- benchmark_data: './ragpy/Data/syntheticdataset.csv'
-
+  corpus: [./ragpy/data/sample_data/rag_for_llms.pdf]
+  benchmark_data: ''
+  save_dir: "./ragpy/data"
 retriever:
-  chunk_size: 400 
-  text_overlap: 50 
-  top_k: 3 
-
+  chunk_size: 400
+  text_overlap: 50
+  top_k: 3
   vector_store:
-    embedding: [huggingface_instruct_embeddings]   
-    database: [Chroma] 
-    persist_directory: [./ragpy/vector_stores/] 
-    chunks: ["this is my 1st chunk","this is my second chunk"]
-  n_rerankers: 1 
-
-  retriever_benchmark_metrics: 
-    context_precision: True 
-    context_recall: True
-
+    embedding: [all_minilm_embeddings]
+    database: [Chroma]
+    persist_directory: [./ragpy/vector_stores/]
+  chunks: ["this is my 1st chunk", "this is my second chunk"]
+  n_rerankers: 1
+  retriever_benchmark_metrics:
+    context_precision: True
+    context_recall: False
 generator:
   chain_type: "simple"
   models:
-    model_type: "hugging" 
+    model_type: "hugging"
     open_ai_model: ["gpt-3.5-turbo"]
     hugging_face_model: ["tiiuae/falcon-7b-instruct"]
-
   model_config:
     max_tokens: 256
     temperature: [0.7, 0.1]
   prompt_template:
-    domain: "Life Science"  
-    prompt_type: general 
-  
-  generation_benchmark_metrics: 
-    answer_relevancy: True 
-    answer_similarity: True 
-    answer_correctness: True   
-   
-
-
-
+    domain: "Life Science"
+    prompt_type: general
+  generation_benchmark_metrics:
+    answer_relevancy: True
+    answer_similarity: True
+    answer_correctness: True
