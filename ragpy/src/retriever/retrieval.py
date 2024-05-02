@@ -1,13 +1,9 @@
 # from langchain.docstore.document import Document
-from FlagEmbedding import FlagModel
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import CrossEncoder as ce
 from langchain.docstore.document import Document
-import cohere
 import argparse
-import os
-import sys
-import pickle
+
 from langchain.text_splitter import CharacterTextSplitter
 import yaml
 # from langchain.embeddings import OpenAIEmbeddings
@@ -21,9 +17,7 @@ from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 from PyPDF2 import PdfReader
 from ragpy.src.dataprocessing.data_loader import DataProcessor
 from ragpy.src.generator.generation_benchmarking import SyntheticDataGenerator
-import cohere
 import pandas as pd
-from cohere.types.rerank_response import RerankResponse
 from langchain_community.document_loaders import PyPDFLoader
 from sentence_transformers import CrossEncoder
 
@@ -61,10 +55,10 @@ class Reranking:
                     l2.append(doc)
                 df.at[k,'contexts']=l2
                 df_dict[df_name] = df
-            file_path = self.config["data"]["save_dir"]+"/generated_data/{}.csv".format(df_name)
+            file_path = self.config["data"]["save_dir"]+"/retrieved_data/{}.csv".format(df_name)
             df.to_csv(file_path,index=False,encoding='utf-8')
             print("Dataframe saved to",file_path)
-        retrieved_data_path=config["data"]["save_dir"]+"/generated_data/"      
+        retrieved_data_path=config["data"]["save_dir"]+"/retrieved_data/"      
         return retrieved_data_path
         
     def rerank_documents(self, query, documents, top_n):
@@ -89,8 +83,8 @@ if __name__ == "__main__":
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
     parser.add_argument('--save_dir',help='Directory to save synthetic data')
     parser.add_argument('--benchmark_data_path',help="Path to the benchmarking dataset in csv")
-    
 
+    
     args = parser.parse_args()
 
     with open(config_file, 'r') as file: 

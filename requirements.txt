@@ -1,5 +1,4 @@
 langchain==0.1.9
-FlagEmbedding==1.2.8
 sentence_transformers==2.2.2
 cohere==5.2.5
 langchain_community==0.0.34
