@@ -61,10 +61,10 @@ class Reranking:
                     l2.append(doc)
                 df.at[k,'contexts']=l2
                 df_dict[df_name] = df
-            file_path = self.config["data"]["save_dir"]+"/retrieved_data/{}.csv".format(df_name)
+            file_path = self.config["data"]["save_dir"]+"/generated_data/{}.csv".format(df_name)
             df.to_csv(file_path,index=False,encoding='utf-8')
             print("Dataframe saved to",file_path)
-        retrieved_data_path=config["data"]["save_dir"]+"/retrieved_data/"      
+        retrieved_data_path=config["data"]["save_dir"]+"/generated_data/"      
         return retrieved_data_path
         
     def rerank_documents(self, query, documents, top_n):

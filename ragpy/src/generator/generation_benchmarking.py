@@ -1,5 +1,5 @@
-from langchain_openai import ChatOpenAI
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+# from langchain_community.embeddings import OpenAIEmbeddings
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
@@ -50,7 +50,7 @@ class SyntheticDataGenerator:
             multi_context: 0.2,
         }
 
-    def generate_testset(self, num_docs=8):
+    def generate_testset(self, num_docs=2):
         """
         Generates a synthetic test dataset and saves it as a CSV file.
 
