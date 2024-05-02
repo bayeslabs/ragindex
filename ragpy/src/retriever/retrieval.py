@@ -1,13 +1,9 @@
 # from langchain.docstore.document import Document
-from FlagEmbedding import FlagModel
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import CrossEncoder as ce
 from langchain.docstore.document import Document
-import cohere
 import argparse
-import os
-import sys
-import pickle
+
 from langchain.text_splitter import CharacterTextSplitter
 import yaml
 # from langchain.embeddings import OpenAIEmbeddings
@@ -21,9 +17,7 @@ from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 from PyPDF2 import PdfReader
 from ragpy.src.dataprocessing.data_loader import DataProcessor
 from ragpy.src.generator.generation_benchmarking import SyntheticDataGenerator
-import cohere
 import pandas as pd
-from cohere.types.rerank_response import RerankResponse
 from langchain_community.document_loaders import PyPDFLoader
 from sentence_transformers import CrossEncoder
 
