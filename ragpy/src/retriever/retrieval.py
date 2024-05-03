@@ -1,25 +1,14 @@
-# from langchain.docstore.document import Document
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from sentence_transformers import CrossEncoder as ce
+
 from langchain.docstore.document import Document
 import argparse
-
-from langchain.text_splitter import CharacterTextSplitter
 import yaml
-# from langchain.embeddings import OpenAIEmbeddings
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceInstructEmbeddings
-from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-
 from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
-from PyPDF2 import PdfReader
+import os
 from ragpy.src.dataprocessing.data_loader import DataProcessor
 from ragpy.src.generator.generation_benchmarking import SyntheticDataGenerator
 import pandas as pd
-from langchain_community.document_loaders import PyPDFLoader
 from sentence_transformers import CrossEncoder
+
 
 
 class Reranking:
@@ -28,16 +17,22 @@ class Reranking:
         self.cross_encoder=CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
         
 
-    def ret(self,data,top_k,config,dict_db =None):
-        df_dict={}
+    def ret(self,data,top_k, config, dict_db =None, num_questions=5):
+        # df_dict={}
         fpath=""
         if self.config["data"]["benchmark_data"]:
             fpath=self.config["data"]["benchmark_data"]
         else:
             documents = [Document(content) for content in data]
             s=SyntheticDataGenerator(documents,self.config)
-            fpath=s.generate_testset()
+            fpath=s.generate_testset(num_docs=num_questions)
+        
         df=pd.read_csv(fpath)
+        
+        save_dir = self.config["data"]["save_dir"] + "/retrieved_data/"
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
         for d in dict_db:    
             df['contexts']=''
             # df['Generated Query']=''
@@ -54,19 +49,16 @@ class Reranking:
                 for doc in reranked_documents:
                     l2.append(doc)
                 df.at[k,'contexts']=l2
-                df_dict[df_name] = df
-            file_path = self.config["data"]["save_dir"]+"/retrieved_data/{}.csv".format(df_name)
-            df.to_csv(file_path,index=False,encoding='utf-8')
-            print("Dataframe saved to",file_path)
-        retrieved_data_path=config["data"]["save_dir"]+"/retrieved_data/"      
-        return retrieved_data_path
+                # df_dict[df_name] = df
         
+            file_path = save_dir + f"{df_name}.csv"
+            df.to_csv(file_path, index=False, encoding='utf-8')
+            print("Dataframe saved to", file_path)
+        
+        return save_dir
+
     def rerank_documents(self, query, documents, top_n):
-        # print("reranking called")
-        # api_key = os.getenv('COHERE_API_KEY')
-        # client=cohere.Client(api_key)
         scores={}
-        # results = self.client.rerank(model="rerank-english-v3.0", query=query, documents=documents, top_n=top_n, return_documents=True)
         for doc in documents:
           scores[doc]=self.cross_encoder.predict([query,doc])
         
@@ -78,11 +70,10 @@ if __name__ == "__main__":
 
     config_file='./config.yaml'
     parser = argparse.ArgumentParser(description='Retrieval and Reranking')
-    # parser.add_argument("--config", type=str, default="/teamspace/studios/this_studio/ragKIT/config/sample_config.yaml",
-    #                     help="Path to the configuration file")
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
     parser.add_argument('--save_dir',help='Directory to save synthetic data')
     parser.add_argument('--benchmark_data_path',help="Path to the benchmarking dataset in csv")
+    parser.add_argument('--num_questions',help="Number of questions to be generated in synthetic benchmark dataset",default=5)
 
     
     args = parser.parse_args()
@@ -103,5 +94,5 @@ if __name__ == "__main__":
     dict_db=obj.generate_databases(chunks)
 
     m=Reranking(config)
-    q=m.ret(chunks,config["retriever"]["top_k"],config,dict_db=dict_db)
+    q=m.ret(chunks,config["retriever"]["top_k"],config,dict_db=dict_db, num_questions=int(args.num_questions))
     print(q)

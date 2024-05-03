@@ -11,33 +11,6 @@ from ragas.metrics import (
     context_precision,
     context_recall,
 )
-# with open('/teamspace/studios/this_studio/ragKIT/Data/mydict.pkl', 'rb') as fp:
-#     dict_data = pickle.load(fp)
-    
-# with open('config.yaml', 'r') as file:
-#     config_file = yaml.safe_load(file)
-
-# import pandas as pd
-
-# # Sample data
-# data = {
-#     'question': [
-#         'What is the capital of France?'
-       
-#     ],
-#     'ground_truth': [
-#         'The capital of France is Paris.'
-        
-#     ],
-#     'contexts': [[
-#         'Paris is the capital and most populous city of France. It has an area of 105 square kilometers and a population of 2,161,000 residents.',
-#         'Harper Lee was an American novelist best known for her 1960 novel To Kill a Mockingbird. It won the Pulitzer Prize for Fiction in 1961 and has become a classic of modern American literature.',
-#         'Jupiter is the fifth planet from the Sun and the largest in the Solar System. It is a gas giant with a mass one-thousandth that of the Sun, but two-and-a-half times that of all the other planets in the Solar System combined.'
-#     ]]
-# }
-
-# # Create the DataFrame
-# df_retrieval = pd.DataFrame(data)
 
 class RetrievalBenchmarking:
     def __init__(self,config,datasets_dir_path):
@@ -46,7 +19,7 @@ class RetrievalBenchmarking:
         
         for df_name in os.listdir(datasets_dir_path):
           if ".csv" in df_name:
-            d[df_name]=pd.read_csv(os.path.join(datasets_dir_path,df_name)).head(1)
+            d[df_name]=pd.read_csv(os.path.join(datasets_dir_path,df_name))
 
         self.dict_data = d
     
@@ -61,8 +34,6 @@ class RetrievalBenchmarking:
         max_benchmark_avg = 0
         for key, df_retrieval in self.dict_data.items():
             default_metrics = [context_precision,context_recall]        
-            # print(type(df_retrieval))
-            # print(df_retrieval.head(1))
             df_retrieval['contexts'] = df_retrieval['contexts'].apply(ast.literal_eval)
             config_metrics = self.config['retriever']['retriever_benchmark_metrics']
             filtered_metrics = []

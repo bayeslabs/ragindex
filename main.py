@@ -2,8 +2,9 @@ from ragpy.src.dataprocessing.data_loader import DataProcessor
 from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 from ragpy.src.retriever.retrieval import Reranking
 from ragpy.src.retriever.retrieval_benchmarking import RetrievalBenchmarking
-
 import argparse,yaml
+
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Data Processing")
@@ -20,6 +21,8 @@ if __name__ == "__main__":
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
     parser.add_argument('--benchmark_data_path',help="Path to the benchmarking dataset in csv")
     parser.add_argument('--save_dir',help='Directory to save synthetic data')
+    parser.add_argument('--num_questions',help="Number of questions to be generated in synthetic benchmark dataset", default=None)
+
     args = parser.parse_args()
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
@@ -29,7 +32,7 @@ if __name__ == "__main__":
 
     if args.chunk_size:
         config["retriever"]["chunk_size"] = args.chunk_size
-  
+    
     if args.text_overlap:
         config["retriever"]["text_overlap"] = args.text_overlap
 
@@ -48,6 +51,9 @@ if __name__ == "__main__":
     if args.save_dir:
         config["data"]["save_dir"]=args.save_dir
 
+    if args.num_questions:
+        args.num_questions = int(args.num_questions)
+
     processor = DataProcessor(config)
     
     chunks = processor.process_data()
@@ -57,7 +63,7 @@ if __name__ == "__main__":
     embedding_generator=EmbeddingGenerator(config)
     dbs=embedding_generator.generate_databases(chunks)
     reranker=Reranking(config)
-    retrieved_data_path=reranker.ret(chunks,config["retriever"]["top_k"],config,dict_db=dbs)
+    retrieved_data_path=reranker.ret(chunks,config["retriever"]["top_k"],config,dict_db=dbs, num_questions=args.num_questions)
     
     df,max_combo=retrieval_benchmarker=RetrievalBenchmarking(datasets_dir_path=retrieved_data_path,config=config).validate_dataframe()
     print("max dataframe is at {}".format(retrieved_data_path+max_combo))
