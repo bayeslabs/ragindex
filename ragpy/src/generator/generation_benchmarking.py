@@ -1,5 +1,4 @@
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-# from langchain_community.embeddings import OpenAIEmbeddings
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
@@ -7,18 +6,12 @@ from ragas.metrics import (
     answer_similarity,
     answer_correctness
 )
-# from dotenv import load_dotenv
-# load_dotenv()
 import pandas as pd
 from ragas.testset.generator import TestsetGenerator
-from ragas.metrics import answer_relevancy, answer_similarity, answer_correctness
 import yaml
-import ast
-import sys
 import pandas as pd
 from ragas.testset.generator import TestsetGenerator
 from ragas.testset.evolutions import simple, multi_context
-import os
 import argparse
 
 class SyntheticDataGenerator:
