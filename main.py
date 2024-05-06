@@ -7,6 +7,7 @@ import argparse,yaml
 from ragpy.src.generator.main_body import Generator_response
 from ragpy.src.generator.generation_benchmarking import Generation_Benchmarking
 import pandas as pd
+import ast
 import tqdm,json
 os.environ["OPENAI_API_KEY"] = ""
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
@@ -147,6 +148,7 @@ if __name__ == "__main__":
     col_list = final_generated_df.columns
     if "answer" in col_list:
         final_generated_df.drop("answer",axis=1,inplace=True)
+    final_generated_df['contexts'] = final_generated_df['contexts'].apply(ast.literal_eval)
     gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
     output_txt_path=generated_data_dir+"Generation_benchmarking_results.txt"
     with open(output_txt_path,"w")as f:
