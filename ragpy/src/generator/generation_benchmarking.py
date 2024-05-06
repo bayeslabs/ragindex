@@ -43,12 +43,12 @@ class SyntheticDataGenerator:
             multi_context: 0.2,
         }
 
-    def generate_testset(self, num_docs=2):
+    def generate_testset(self, num_docs=5):
         """
         Generates a synthetic test dataset and saves it as a CSV file.
 
         Args:
-            num_docs (int, optional): Number of documents to generate (default is 8).
+            num_docs (int, optional): Number of documents to generate (default is 5).
         
         Returns:
             Synthetic dataset amd saves a copy to the current working directory or any custom path. 
