@@ -138,4 +138,7 @@ if __name__ == "__main__":
     if "answer" in col_list:
         final_generated_df.drop("answer",axis=1,inplace=True)
     gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
-    print("results are saved to",generated_data_path)
+    output_txt_path=r"./data/generated_data/Generation_benchmarking_results.txt"
+    with open(output_txt_path,"w")as f:
+        f.write(json.dumps(gen_bench))
+    print("benchmarked_results are saved to",output_txt_path)
