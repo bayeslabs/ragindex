@@ -13,3 +13,4 @@ chromadb
 faiss-cpu
 InstructorEmbedding
 langchain_text_splitters
+pandas
