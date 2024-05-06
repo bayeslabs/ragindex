@@ -7,20 +7,19 @@ import argparse,yaml
 from ragpy.src.generator.main_body import Generator_response
 from ragpy.src.generator.generation_benchmarking import Generation_Benchmarking
 import pandas as pd
-import ast
 import tqdm,json
 os.environ["OPENAI_API_KEY"] = ""
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Data Processing")
+    parser = argparse.ArgumentParser(description="Ragpy")
     parser.add_argument("--config", type=str, default="./config.yaml",help="Path to the configuration file")
     parser.add_argument("--user_files", nargs='+', type=str, default=None, help="Path to the user-specified file to be processed")
     parser.add_argument("--chunk_size", type=int, default=400, help="Chunk size for splitting text")
     parser.add_argument("--text_overlap", type=int, default=50, help="Text overlap for splitting text")
 
     # embedding generation
-    parser.add_argument("--embedding", nargs='+', help="List of embedding options available are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
+    parser.add_argument("--embedding", nargs='+', help="List of embedding options ,the available options are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
     parser.add_argument("--vectorstore", nargs='+', help="Vector store option (Chroma or Faiss)")
     parser.add_argument("--persist_dir",type="str",help="path to the vector store persistent directory")
 
@@ -28,7 +27,7 @@ if __name__ == "__main__":
     # Retrieval
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
     parser.add_argument('--benchmark_data_path',help="Path to the benchmarking dataset in csv")
-    parser.add_argument('--save_dir',help='Directory to save results like synthetic data,generated data and the predicted responses')
+    parser.add_argument('--save_dir',help='Directory to save all the results like synthetic data,generated data and the predicted responses')
     parser.add_argument('--num_questions',help="Number of questions to be generated in synthetic benchmark dataset", default=None)
 
     # Generation
@@ -148,7 +147,6 @@ if __name__ == "__main__":
     col_list = final_generated_df.columns
     if "answer" in col_list:
         final_generated_df.drop("answer",axis=1,inplace=True)
-    final_generated_df['contexts'] = final_generated_df['contexts'].apply(ast.literal_eval)
     gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
     output_txt_path=generated_data_dir+"Generation_benchmarking_results.txt"
     with open(output_txt_path,"w")as f:
