@@ -1,4 +1,4 @@
- data:
+data:
   corpus: [./ragpy/data/sample_data/rag_for_llms.pdf]
   benchmark_data: ''
   save_dir: "./ragpy/data"
@@ -7,7 +7,7 @@ retriever:
   text_overlap: 50
   top_k: 3
   vector_store:
-    embedding: [openai_embeddings]
+    embedding: [all_minilm_embeddings]
     database: [Chroma]
     persist_directory: [./ragpy/vector_stores/]
     chunks: ["this is my 1st chunk", "this is my second chunk"]
@@ -30,5 +30,5 @@ generator:
     prompt_type: general
   generation_benchmark_metrics:
     answer_relevancy: True
-    answer_similarity: True
-    answer_correctness: True
+    answer_similarity: False
+    answer_correctness: False
