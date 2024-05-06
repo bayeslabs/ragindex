@@ -58,6 +58,8 @@ class Generator_response():
         """
 
         if self.retriever == None:
+            if isinstance(self.db_path, list):
+                self.db_path = self.db_path[0]
             root_path=pathlib.Path(self.db_path).stem
             data_list=root_path.split("_")
             embedding_name="_".join(data_list[:-1])
