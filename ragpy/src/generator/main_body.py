@@ -1,7 +1,7 @@
 import sys
 import sys
 import sys
-from src.generator.models_module import models_mod as mm
+from ragpy.src.generator.models_module import models_mod as mm
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.chains import RetrievalQA
@@ -9,7 +9,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 
-from src.generator.prompt import CustomPromptTemplate
+from ragpy.src.generator.prompt import CustomPromptTemplate
 import pandas as pd
 from itertools import product
 import yaml
@@ -62,6 +62,7 @@ class Generator_response():
         """
         
         if self.retriever == None:
+            print("db in function",self.db)
             data=self.db.split("_")
             db_name=data[-1]
             if db_name.lower()=="chroma":
@@ -73,6 +74,7 @@ class Generator_response():
             retriever = self.db.as_retriever(search_type="similarity", search_kwargs={"k": 2})
             return retriever,"document_type"
         else:
+            print("reached here",self.retriever)
             retriever = self.retriever
             return retriever, "string_datatype"
         
@@ -96,10 +98,13 @@ class Generator_response():
         return rag_chain
     
     def main(self, query):
+        print("config",self.data)
         domain = self.data['generator']['prompt_template']['domain']
         prompt_type = self.data['generator']['prompt_template']['prompt_type']
         prompt = CustomPromptTemplate(domain)
+        print("prompt",prompt)
         prompt = prompt.main(prompt_type)
+        print("prompt after main",prompt)
         try:
              retriever, datatype = self.retriever_fun()
         except Exception as e:
@@ -107,23 +112,29 @@ class Generator_response():
             return "both retriever and db are not provided"
             
         objects = mm(config=self.data)
+        print("objects in main body",objects)
         models = {} # Dictionary to store model instances
         try:
             temp = self.data['generator']['model_config']['temperature']
             model_type = self.data['generator']['models']['model_type']
+            print("model tpe",model_type)
             if model_type == "openai":
                 model_list = self.data['generator']['models']['open_ai_model']
                 # model_list = ["gpt-3.5-turbo"]
-                combinations = list(product(temp, model_list))
-
+                combinations = product(temp, model_list)
+                print("combinations",combinations)
                 for i in combinations:
                     model_key = f"openai_{i[1]}_{i[0]}" # Unique key for each model instance
+                    print("combo:",i)
                     models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
             else:
                 model_list = self.data['generator']['models']['hugging_face_model']
+                print("model list",model_list)
                 combinations = product(temp, model_list)
+                print("combinations",combinations)
                 for i in combinations:
                     model_key = f"hugging_face_{i[1]}_{i[0]}" # Unique key for each model instance
+                    print("combo:",i)
                     models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
             
             if datatype == "string_datatype":
@@ -181,9 +192,9 @@ if __name__=="__main__":
     if args.db_path:
         data["retriever"]["vector_store"]["persist_directory"] = args.db_path
     
-    if args.context:
+    if args.context and args.query:
         rag_object = Generator_response(retriever=args.context,config=data,query=args.query,db=data["retriever"]["vector_store"]["persist_directory"])
-    else:
+    elif args.embedding is not None:
         if args.embedding.lower()=="openai_embeddings":
             embedding_function = OpenAIEmbeddings()
         elif args.embedding.lower()=="huggingface_instruct_embeddings":
@@ -197,6 +208,8 @@ if __name__=="__main__":
         if args.db_path:
             rag_object = Generator_response(config=data,query=args.query,db=args.db_path,embedding=embedding_function)
         else:
-            raise ValueError(""both retriever and db path are not provided")
+            raise ValueError("both retriever and db path are not provided")
+    else:
+      raise ValueError("both retriever and db path are not provided")
     results = rag_object.main(args.query)
     print("Results from model:",results)
