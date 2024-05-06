@@ -13,7 +13,7 @@ os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Data Processing")
-    parser.add_argument("--config", type=str, default="Ragpy\\config.yaml",help="Path to the configuration file")
+    parser.add_argument("--config", type=str, default="./config.yaml",help="Path to the configuration file")
     parser.add_argument("--user_files", nargs='+', type=str, default=None, help="Path to the user-specified file to be processed")
     parser.add_argument("--chunk_size", type=int, default=400, help="Chunk size for splitting text")
     parser.add_argument("--text_overlap", type=int, default=50, help="Text overlap for splitting text")
@@ -21,11 +21,13 @@ if __name__ == "__main__":
     # embedding generation
     parser.add_argument("--embedding", nargs='+', help="List of embedding options available are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
     parser.add_argument("--vectorstore", nargs='+', help="Vector store option (Chroma or Faiss)")
+    parser.add_argument("--persist_dir",type="str",help="path to the vector store persistent directory")
+
 
     # Retrieval
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
     parser.add_argument('--benchmark_data_path',help="Path to the benchmarking dataset in csv")
-    parser.add_argument('--save_dir',help='Directory to save synthetic data')
+    parser.add_argument('--save_dir',help='Directory to save results like synthetic data,generated data and the predicted responses')
     parser.add_argument('--num_questions',help="Number of questions to be generated in synthetic benchmark dataset", default=None)
 
     # Generation
@@ -63,6 +65,9 @@ if __name__ == "__main__":
 
     if args.vectorstore:
         config["retriever"]["vector_store"]["database"] = args.vectorstore
+
+    if args.persist_dir:
+        config["retriever"]["vector_store"]["persist_directory"][0]=args.persist_dir
 
     # for retrieving top documents
     if args.top_k:
@@ -109,7 +114,6 @@ if __name__ == "__main__":
     df,max_combo=RetrievalBenchmarking(datasets_dir_path=retrieved_data_path,config=config).validate_dataframe()
     print("max dataframe is at {}".format(retrieved_data_path+max_combo))
     db_csv_path=retrieved_data_path+max_combo
-    db_csv_path = "Ragpy\\data\\retrieved_data\\all_minilm_embeddings_Chroma.csv"
     df=pd.read_csv(db_csv_path)
     final_response={}
     if config["generator"]["context_given"]=="no":
@@ -129,15 +133,22 @@ if __name__ == "__main__":
             final_response[query]=temp_result["result"]
     temp_generated_df= pd.DataFrame.from_dict(final_response, orient='index')
     temp_generated_df = temp_generated_df.reset_index().rename(columns={'index': 'question'})
-    temp_generated_data_path=".\\ragpy\\data\\generated_data\\temp_generated_data.csv"
+    # creating a folder for all generated data
+    generated_data_dir = self.config["data"]["save_dir"] + "/generated_data/"
+    if not os.path.exists(generated_data_dir):
+        os.makedirs(generated_data_dir)
+        
+    temp_generated_data_path=generated_data_dir+"temp_generated_data.csv"
     temp_generated_df.to_csv(temp_generated_data_path,index=False)
 
     final_generated_df = pd.merge(df,temp_generated_df, on='question')
-    final_generated_data=".\\ragpy\\data\\generated_data\\final.csv"
+    final_generated_data=generated_data_dir+"final_generated_data.csv"
     final_generated_df.to_csv(final_generated_data,index=False)
-    # final_generated_df = pd.read_csv("ragpy\\data\\generated_data\\final.csv")
     col_list = final_generated_df.columns
     if "answer" in col_list:
         final_generated_df.drop("answer",axis=1,inplace=True)
-    # gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
-    # print("results are saved to",generated_data_path)
+    gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
+    output_txt_path=generated_data_dir+"Generation_benchmarking_results.txt"
+    with open(output_txt_path,"w")as f:
+        f.write(json.dumps(gen_bench))
+    print("benchmarked_results are saved to",output_txt_path)
