@@ -13,7 +13,7 @@ os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Data Processing")
-    parser.add_argument("--config", type=str, default="Ragpy\\config.yaml",help="Path to the configuration file")
+    parser.add_argument("--config", type=str, default="./config.yaml",help="Path to the configuration file")
     parser.add_argument("--user_files", nargs='+', type=str, default=None, help="Path to the user-specified file to be processed")
     parser.add_argument("--chunk_size", type=int, default=400, help="Chunk size for splitting text")
     parser.add_argument("--text_overlap", type=int, default=50, help="Text overlap for splitting text")
@@ -109,7 +109,6 @@ if __name__ == "__main__":
     df,max_combo=RetrievalBenchmarking(datasets_dir_path=retrieved_data_path,config=config).validate_dataframe()
     print("max dataframe is at {}".format(retrieved_data_path+max_combo))
     db_csv_path=retrieved_data_path+max_combo
-    db_csv_path = "Ragpy\\data\\retrieved_data\\all_minilm_embeddings_Chroma.csv"
     df=pd.read_csv(db_csv_path)
     final_response={}
     if config["generator"]["context_given"]=="no":
@@ -129,15 +128,14 @@ if __name__ == "__main__":
             final_response[query]=temp_result["result"]
     temp_generated_df= pd.DataFrame.from_dict(final_response, orient='index')
     temp_generated_df = temp_generated_df.reset_index().rename(columns={'index': 'question'})
-    temp_generated_data_path=".\\ragpy\\data\\generated_data\\temp_generated_data.csv"
+    temp_generated_data_path="./ragpy/data/generated_data/temp_generated_data.csv"
     temp_generated_df.to_csv(temp_generated_data_path,index=False)
 
     final_generated_df = pd.merge(df,temp_generated_df, on='question')
-    final_generated_data=".\\ragpy\\data\\generated_data\\final.csv"
+    final_generated_data="./ragpy/data/generated_data/final_generated_data.csv"
     final_generated_df.to_csv(final_generated_data,index=False)
-    # final_generated_df = pd.read_csv("ragpy\\data\\generated_data\\final.csv")
     col_list = final_generated_df.columns
     if "answer" in col_list:
         final_generated_df.drop("answer",axis=1,inplace=True)
-    # gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
-    # print("results are saved to",generated_data_path)
+    gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
+    print("results are saved to",generated_data_path)
