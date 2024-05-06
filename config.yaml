@@ -7,7 +7,7 @@ retriever:
   text_overlap: 50
   top_k: 3
   vector_store:
-    embedding: [all_minilm_embeddings]
+    embedding: [openai_embeddings]
     database: [Chroma]
     persist_directory: [./ragpy/vector_stores/]
     chunks: ["this is my 1st chunk", "this is my second chunk"]
@@ -16,6 +16,7 @@ retriever:
     context_precision: True
     context_recall: False
 generator:
+  context_given: "yes"   #["yes","no"]
   chain_type: "simple"
   models:
     model_type: "hugging"
