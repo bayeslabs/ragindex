@@ -7,7 +7,7 @@ import argparse,yaml
 from ragpy.src.generator.main_body import Generator_response
 from ragpy.src.generator.generation_benchmarking import Generation_Benchmarking
 import pandas as pd
-import tqdm
+import tqdm,json
 os.environ["OPENAI_API_KEY"] = ""
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
