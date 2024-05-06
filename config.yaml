@@ -1,5 +1,5 @@
 data:
-  corpus: [.\Ragpy\ragpy\data\sample_data\text.txt]
+  corpus: [./ragpy/data/sample_data/rag_for_llms.pdf]
   benchmark_data: ''
   save_dir: "./ragpy/data"
 retriever:
