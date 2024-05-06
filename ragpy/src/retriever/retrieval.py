@@ -28,34 +28,38 @@ class Reranking:
             fpath=s.generate_testset(num_docs=num_questions)
         
         df=pd.read_csv(fpath)
-        
-        save_dir = self.config["data"]["save_dir"] + "/retrieved_data/"
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
+        col_list=['question','ground_truth','contexts']
+        try:
+            if set(col_list).issubset(set(df.columns)):
+                save_dir = self.config["data"]["save_dir"] + "/retrieved_data/"
+                if not os.path.exists(save_dir):
+                    os.makedirs(save_dir)
 
-        for d in dict_db:    
-            df['contexts']=''
-            # df['Generated Query']=''
-            df_name = f'{d["embeddings"]}_{d["vectorstore"]}'
-            for k in range(0,df.shape[0]):
-                query=df.iloc[k,0]
-                db=d["db"]
-                docs=db.similarity_search_with_relevance_scores(query)
-                l1=[]
-                for doc in docs:
-                    l1.append(doc[0].page_content)
-                reranked_documents=self.rerank_documents(query,l1,top_k)
-                l2=[]
-                for doc in reranked_documents:
-                    l2.append(doc)
-                df.at[k,'contexts']=l2
-                # df_dict[df_name] = df
-        
-            file_path = save_dir + f"{df_name}.csv"
-            df.to_csv(file_path, index=False, encoding='utf-8')
-            print("Dataframe saved to", file_path)
-        
-        return save_dir
+                for d in dict_db:    
+                    df['contexts']=''
+                    # df['Generated Query']=''
+                    df_name = f'{d["embeddings"]}_{d["vectorstore"]}'
+                    for k in range(0,df.shape[0]):
+                        query=df.iloc[k,0]
+                        db=d["db"]
+                        docs=db.similarity_search_with_relevance_scores(query)
+                        l1=[]
+                        for doc in docs:
+                            l1.append(doc[0].page_content)
+                        reranked_documents=self.rerank_documents(query,l1,top_k)
+                        l2=[]
+                        for doc in reranked_documents:
+                            l2.append(doc)
+                        df.at[k,'contexts']=l2
+                        # df_dict[df_name] = df
+                
+                    file_path = save_dir + f"{df_name}.csv"
+                    df.to_csv(file_path, index=False, encoding='utf-8')
+                    print("Dataframe saved to", file_path)
+                
+                return save_dir
+        except:
+            raise ValueError("Dataframe should contain tcolumns in the format of 'question','ground_truth','contexts'")
 
     def rerank_documents(self, query, documents, top_n):
         scores={}
