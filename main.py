@@ -1,4 +1,4 @@
-import os 
+import os,ast
 from ragpy.src.dataprocessing.data_loader import DataProcessor
 from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 from ragpy.src.retriever.retrieval import Reranking
@@ -147,6 +147,7 @@ if __name__ == "__main__":
     col_list = final_generated_df.columns
     if "answer" in col_list:
         final_generated_df.drop("answer",axis=1,inplace=True)
+    final_generated_df['contexts'] = final_generated_df['contexts'].apply(ast.literal_eval)
     gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
     output_txt_path=generated_data_dir+"Generation_benchmarking_results.txt"
     with open(output_txt_path,"w")as f:
