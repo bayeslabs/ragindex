@@ -1,4 +1,4 @@
-data:
+ data:
   corpus: [./ragpy/data/sample_data/rag_for_llms.pdf]
   benchmark_data: ''
   save_dir: "./ragpy/data"
@@ -10,7 +10,7 @@ retriever:
     embedding: [all_minilm_embeddings]
     database: [Chroma]
     persist_directory: [./ragpy/vector_stores/]
-  chunks: ["this is my 1st chunk", "this is my second chunk"]
+    chunks: ["this is my 1st chunk", "this is my second chunk"]
   n_rerankers: 1
   retriever_benchmark_metrics:
     context_precision: True
