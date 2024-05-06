@@ -115,7 +115,8 @@ if __name__ == "__main__":
     if config["generator"]["context_given"]=="no":
         for query in  tqdm.tqdm(df["question"].to_list(), desc="Processing queries with vector db and chains"):
             temp_result={}
-            generator_object=Generator_response(config=config,query=query,db_path = config["retriever"]["vector_store"]["persist_directory"])
+            vdb_path =config["retriever"]["vector_store"]["persist_directory"][0]+config["retriever"]["vector_store"]["embedding"][0]+"_"+config["retriever"]["vector_store"]["database"][0]
+            generator_object=Generator_response(config=config,query=query,db_path = vdb_path)
             temp_result[query]=generator_object
             temp_result["result"]=generator_object.main(query)
             final_response[query]=temp_result["result"]
