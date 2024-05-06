@@ -1,14 +1,13 @@
 import argparse
-from langchain_fireworks import Fireworks
 import requests
 from langchain.chat_models import ChatOpenAI
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 import os
 import yaml
 from huggingface_hub import InferenceApi
-from dotenv import load_dotenv
 import warnings
-class models_mod(config):
+
+class models_mod():
     def __init__(self,max_tokens=256,config=None):
         self.max_tokens = max_tokens
         self.data = config
@@ -16,16 +15,19 @@ class models_mod(config):
             self.temp = self.data["generator"]["model_config"]["temperature"]
     
     def openai(self,temp=None,model_name=None):
-        model_name = data['generator']['models']['open_ai_model']
+        model_name = self.data['generator']['models']['open_ai_model']
+        print("model name",model_name)
         llm = ChatOpenAI(model=model_name,temperature=temp)  # type: ignore()
         return llm
         
     def hugging_face(self,temp=None,model_name=None):
-        model_name =  data['generator']['models']['hugging_face_model']
+        model_name =  self.data['generator']['models']['hugging_face_model']
+        print("model name in hf",model_name)
         try:
             url = "https://api-inference.huggingface.co/models"
             model_location = f"{url}/{model_name}"
             response = requests.get(model_location)
+            print("response",response)
             result = response.json()
             if result["gated"] == False:
                 llm = HuggingFaceEndpoint(repo_id=model_name,max_new_tokens=249,temp = temp)  # type: ignore()
@@ -41,6 +43,7 @@ class models_mod(config):
 
     def main(self,model_type,model_name,temp):
         if model_type=="openai":
+            print("main called openai")
             model = self.openai(temp,model_name)
             return model
         else:
