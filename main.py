@@ -134,7 +134,7 @@ if __name__ == "__main__":
     temp_generated_df= pd.DataFrame.from_dict(final_response, orient='index')
     temp_generated_df = temp_generated_df.reset_index().rename(columns={'index': 'question'})
     # creating a folder for all generated data
-    generated_data_dir = self.config["data"]["save_dir"] + "/generated_data/"
+    generated_data_dir = config["data"]["save_dir"] + "/generated_data/"
     if not os.path.exists(generated_data_dir):
         os.makedirs(generated_data_dir)
         
