@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # embedding generation
     parser.add_argument("--embedding", nargs='+', help="List of embedding options ,the available options are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
     parser.add_argument("--vectorstore", nargs='+', help="Vector store option (Chroma or Faiss)")
-    parser.add_argument("--persist_dir",type="str",help="path to the vector store persistent directory")
+    parser.add_argument("--persist_dir",type=str,help="path to the vector store persistent directory")
 
 
     # Retrieval
