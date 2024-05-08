@@ -13,4 +13,4 @@ chromadb
 faiss-cpu
 InstructorEmbedding
 langchain_text_splitters
-pandas
+pandas==2.2.2
