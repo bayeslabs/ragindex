@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--embedding", nargs='+', help="List of embedding options available are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
-    parser.add_argument("--vectorstore", type=str, help="Vector store option (chroma or faiss)")
+    parser.add_argument("--vectorstore", nargs='+', type=str, help="Vector store option (chroma or faiss)")
     parser.add_argument("--chunks", nargs='+', help="List of text chunks")
     args = parser.parse_args()
 
