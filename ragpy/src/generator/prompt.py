@@ -13,8 +13,8 @@ class CustomPromptTemplate:
         Returns:
             None
         """
-        self.domain = domain
-        self.custom_prompt=custom_prompt
+        self.domain = domain 
+        self.custom_prompt_var=custom_prompt
 
     def specific_prompt(self):
         """
@@ -66,7 +66,7 @@ class CustomPromptTemplate:
         if prompt_type == "specific":
             prompt = self.specific_prompt()
         elif prompt_type == "custom":
-            prompt = self.custom_prompt(self.custom_prompt)
+            prompt = self.custom_prompt(self.custom_prompt_var)
         else:
             prompt = self.general_prompt()
         custom_rag_prompt = PromptTemplate.from_template(prompt)
@@ -78,13 +78,15 @@ if __name__ == "__main__":
         
     # Create the parser
     parser = argparse.ArgumentParser(description='Generate a custom prompt for a specific domain.')
-    parser.add_argument('--domain', type=str, default='General Question Answering Bot', nargs='?',
+    parser.add_argument('--domain', type=str, default='Life Science', nargs='?',
                         help='The domain for which the prompt is created like healthcare,life science finance etc Default is "General QA Bot".')
     parser.add_argument('--prompt_type', type=str, choices=['specific', 'custom', 'general'], default='general', nargs='?',
                         help='The type of prompt to generate. Can be "specific", "custom", or "general". Default is "general".')
     parser.add_argument('--prompt',type=str,help='give your custom prompt')
+
+   
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args() 
     if args.domain:
         data["generator"]["prompt_template"]["domain"] = args.domain
     if args.prompt_type:
@@ -97,6 +99,7 @@ if __name__ == "__main__":
         elif args.prompt_type.lower()=="specific":
             if args.domain:
                 prompt = CustomPromptTemplate(domain=args.domain)
+                
             else:
                 raise ValueError("Domain is needed for specific prompt type")
         else:
