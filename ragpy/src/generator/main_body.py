@@ -1,22 +1,21 @@
-
 import sys
-from ragpy.src.generator.models_module import models_mod as mm
+from models_module import models_mod as mm
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from ragpy.src.generator.prompt import CustomPromptTemplate
-import pandas as pd
-import pathlib
-from itertools import product
+from prompt import CustomPromptTemplate
+import pandas as pd 
+import pathlib   
+from itertools import product 
 import yaml
-import argparse
+import argparse     
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma,FAISS
-import os
-class Generator_response():
+import os 
+class Generator_response(): 
     def __init__(self,db_path=None,retriever=None,query=None,
                 max_tokens = None,temperature= None,config = None):
         """
@@ -27,7 +26,7 @@ class Generator_response():
             query (optional): The query object. Defaults to None.
             model_name (optional): The name of the model. Defaults to None.
         """
-      
+
         self.retriever = retriever
         self.db_path = db_path
         self.db = None
@@ -199,22 +198,9 @@ if __name__=="__main__":
 
     if args.context and args.query:
         rag_object = Generator_response(retriever=args.context,config=data,query=args.query,db=data["retriever"]["vector_store"]["persist_directory"])
-    elif args.embedding is not None:
-        if args.embedding.lower()=="openai_embeddings":
-            embedding_function = OpenAIEmbeddings()
-        elif args.embedding.lower()=="huggingface_instruct_embeddings":
-            embedding_function = HuggingFaceInstructEmbeddings()
-        elif args.embedding.lower()=="all_minilm_embeddings":
-            embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-        elif args.embedding.lower()=="bgem3_embeddings":
-            embedding_function = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
-        else:
-            raise ValueError("Invalid embedding name. Please choose from: openai_embeddings, huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings")
-        if args.db_path:
-            rag_object = Generator_response(config=data,query=args.query,db=args.db_path,embedding=embedding_function)
-        else:
-            raise ValueError("both retriever and db path are not provided")
+    elif args.db_path:
+        rag_object = Generator_response(config=data,query=args.query,db_path=args.db_path)
     else:
-      raise ValueError("both retriever and db path are not provided")
+        raise ValueError("both retriever and db path are not provided")
     results = rag_object.main(args.query)
-    print("Results from model:",results)
+    print("Results from model:",results) 
