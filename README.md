@@ -8,11 +8,17 @@ The project mainly aims to  simulates the creating  of the RAGPY system.
 Python 3.10
 
 ## Installation
-1.clone the repository :  
-```! git clone https://github.com/bayeslabs/Ragpy.git ```
-```cd ./Ragpy```
+
+1. Clone the repository:  
+   ```bash
+   ! git clone https://github.com/bayeslabs/Ragpy.git
+   cd ./Ragpy
+   ```
+
 2. Install the required packages:
-```! pip install -e . ```
+   ```bash
+   ! pip install -e .
+   ```
 
 ## Usage
 
