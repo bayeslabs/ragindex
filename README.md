@@ -9,8 +9,8 @@ Python 3.10
 
 ## Installation
 1.clone the repository :  
-```! git clone https://github.com/bayeslabs/Ragpy.git
-cd//content/Ragpy```
+```! git clone https://github.com/bayeslabs/Ragpy.git ```
+```cd ./Ragpy```
 2. Install the required packages:
 ```! pip install -e . ```
 
