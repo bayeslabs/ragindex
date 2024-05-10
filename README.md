@@ -19,6 +19,7 @@ The project mainly aims to  simulates the creating  of the RAGPY system.
 Run the script main.py with  command-line argument
       !python main.py -h
  By executing the RAG pipeline. Here are the available options that you can customise with the parsers
+```
 `--config`: Path to the configuration file (default: ./config.yaml)
 `--user_files`: Path(s) to user-specified file(s) to be processed
 `--chunk_size`: Chunk size for splitting text (default: 400)
@@ -39,6 +40,7 @@ Run the script main.py with  command-line argument
 `--temperature`: Temperature of the model (default: 0.7)
 `--llm_repo_id`: Hugging face repo ID for language modelling
 `--db_path`: Path of the database
+```
  
 ## Example
 ```bash
@@ -58,4 +60,3 @@ python main.py --config path/to/config.yaml
 
 ## Configuration
 Customize the behavior of RAGpy using the `config.yaml` file. Refer to the configuration file for detailed options and descriptions.
-```
