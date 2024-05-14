@@ -1,12 +1,12 @@
 import sys
-from models_module import models_mod as mm
+from ragpy.src.generator.models_module import models_mod as mm
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from prompt import CustomPromptTemplate
+from ragpy.src.generator.prompt import CustomPromptTemplate
 import pandas as pd 
 import pathlib   
 from itertools import product 
