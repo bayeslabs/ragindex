@@ -8,8 +8,9 @@ from ragpy.src.generator.main_body import Generator_response
 from ragpy.src.generator.generation_benchmarking import Generation_Benchmarking
 import pandas as pd
 import tqdm,json
-os.environ["OPENAI_API_KEY"] = ""
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
+
+# os.environ["OPENAI_API_KEY"] = ""
+# os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Ragpy")
@@ -131,10 +132,14 @@ if __name__ == "__main__":
             temp_result[query]=generator_object
             temp_result["result"]=generator_object.main(query)
             final_response[query]=temp_result["result"]
+
     temp_generated_df= pd.DataFrame.from_dict(final_response, orient='index')
     temp_generated_df = temp_generated_df.reset_index().rename(columns={'index': 'question'})
+
     # creating a folder for all generated data
+
     generated_data_dir = config["data"]["save_dir"] + "/generated_data/"
+
     if not os.path.exists(generated_data_dir):
         os.makedirs(generated_data_dir)
         
@@ -144,10 +149,13 @@ if __name__ == "__main__":
     final_generated_df = pd.merge(df,temp_generated_df, on='question')
     final_generated_data=generated_data_dir+"final_generated_data.csv"
     final_generated_df.to_csv(final_generated_data,index=False)
+
     col_list = final_generated_df.columns
-    if "answer" in col_list:
-        final_generated_df.drop("answer",axis=1,inplace=True)
+    if "Unnamed: 2" in col_list:
+        final_generated_df.drop("Unnamed: 2",axis=1,inplace=True)
+
     final_generated_df['contexts'] = final_generated_df['contexts'].apply(ast.literal_eval)
+
     gen_bench= Generation_Benchmarking(testset_df=final_generated_df, config=config).run_benchmarks()
     output_txt_path=generated_data_dir+"Generation_benchmarking_results.txt"
     with open(output_txt_path,"w")as f:
