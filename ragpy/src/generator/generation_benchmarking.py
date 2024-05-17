@@ -3,8 +3,7 @@ from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
     answer_relevancy,
-    answer_similarity,
-    answer_correctness
+    answer_similarity
 )
 import pandas as pd
 from ragas.testset.generator import TestsetGenerator
@@ -13,6 +12,7 @@ import pandas as pd
 from ragas.testset.generator import TestsetGenerator
 from ragas.testset.evolutions import simple, multi_context
 import argparse
+import statistics
 
 class SyntheticDataGenerator:
     """
@@ -70,7 +70,7 @@ class Generation_Benchmarking:
     """
     def __init__(self, testset_df, config):
         self.testset_df = testset_df
-        metrics = [answer_relevancy, answer_similarity, answer_correctness]
+        metrics = [answer_relevancy, answer_similarity]
         config = config['generator']['generation_benchmark_metrics']
         self.filtered_metrics = []
         for metric in metrics:
@@ -94,6 +94,7 @@ class Generation_Benchmarking:
 
         if not set(required_columns).issubset(set(self.testset_df.columns)):
             raise ValueError("The required columns 'question', 'ground_truth', and 'contexts' are missing.")
+        
         dataset = Dataset.from_pandas(self.testset_df)
         generator_benchmarks = {}
 
@@ -102,11 +103,16 @@ class Generation_Benchmarking:
             generator_benchmarks[col] = evaluate(dataset, metrics=self.filtered_metrics, raise_exceptions=False)
             dataset = dataset.remove_columns('answer')
         
-
         average_scores = {}
+
+        # print(f"Generation Benchmarks:{generator_benchmarks}")
+
         for combination in generator_benchmarks.keys():
-            avg_score = sum(generator_benchmarks[combination].values()) / len(generator_benchmarks[combination])
-            average_scores[combination] = avg_score
+            scores = list(generator_benchmarks[combination].values())
+            harmonic_mean = statistics.harmonic_mean(scores)
+            average_scores[combination] = harmonic_mean    
+        
+        # print(f"Harmonic Mean:{average_scores}")
 
         best_combination = max(average_scores, key=average_scores.get)
 
@@ -132,3 +138,4 @@ if __name__=="__main__":
     gen_bench = Generation_Benchmarking(testset_df=save_dir, config=conf).run_benchmarks()
     
     print(gen_bench)
+    

@@ -1,4 +1,4 @@
-import os,ast
+import os, ast, shutil
 from ragpy.src.dataprocessing.data_loader import DataProcessor
 from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 from ragpy.src.retriever.retrieval import Reranking
@@ -38,10 +38,12 @@ if __name__ == "__main__":
     parser.add_argument('--chain_type', type=str, default='simple', help='The type of chain to use. Can be "simple", or "retrieval"')
     parser.add_argument('--domain', type=str, default='Healthcare', help='It can be anything.')
     parser.add_argument('--prompt_type', type=str, default='general', help='The type of prompt to use. Can be "general","custom" or "specific",')
-    parser.add_argument('--temperature',nargs='+',default=[0.7,0.1],help="Temperature of the model. Default is 0.7.")
+    parser.add_argument('--temperature',nargs='+',default=[0.1],help="Temperature of the model. Default is 0.7.")
     parser.add_argument('--llm_repo_id',type=str,help="Hugging face repo id for llm")
     parser.add_argument('--db_path',nargs='+',help="Path of the db")
+
     args = parser.parse_args()
+    
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
@@ -97,26 +99,51 @@ if __name__ == "__main__":
         config["retriever"]["vector_store"]["embedding"] = args.embedding
     if args.db_path:
         config["retriever"]["vector_store"]["persist_directory"] = args.db_path
-      
+
+
+    #Resetting directories
+    folders = [config["retriever"]["vector_store"]["persist_directory"][0], 
+               config["data"]["save_dir"] + "/retrieved_data/",
+               config["data"]["save_dir"] + "/generated_data/"]
+
+    for folder in folders:
+        for filename in os.listdir(folder):
+
+            file_path = os.path.join(folder, filename)
+
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
     processor = DataProcessor(config)
     
     chunks = processor.process_data()
     config["retriever"]["vector_store"]["chunks"]=chunks
 
     embedding_generator=EmbeddingGenerator(config)
+
     dbs=embedding_generator.generate_databases(chunks)
+
     print("dbs in main",dbs)
+
     reranker=Reranking(config)
+
     if args.num_questions:
       retrieved_data_path=reranker.ret(chunks,config["retriever"]["top_k"],config,dict_db=dbs, num_questions=int(args.num_questions))
     else:
       retrieved_data_path=reranker.ret(chunks,config["retriever"]["top_k"],config,dict_db=dbs)
+    
     print("path is:",retrieved_data_path)
     df,max_combo=RetrievalBenchmarking(datasets_dir_path=retrieved_data_path,config=config).validate_dataframe()
+    
     print("max dataframe is at {}".format(retrieved_data_path+max_combo))
     db_csv_path=retrieved_data_path+max_combo
+    
     df=pd.read_csv(db_csv_path)
     final_response={}
+    
     if config["generator"]["context_given"]=="no":
         for query in  tqdm.tqdm(df["question"].to_list(), desc="Processing queries with vector db and chains"):
             temp_result={}
