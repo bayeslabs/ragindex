@@ -11,6 +11,7 @@ import tqdm,json
 
 # os.environ["OPENAI_API_KEY"] = ""
 # os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Ragpy")
@@ -117,11 +118,10 @@ if __name__ == "__main__":
 
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
-                    
+
         except FileNotFoundError:
             continue
     
-    raise ValueError("Test error")
     processor = DataProcessor(config)
     
     chunks = processor.process_data()
