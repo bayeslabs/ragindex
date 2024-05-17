@@ -4,7 +4,7 @@ import os,ast
 import pickle
 from datasets import Dataset
 from ragas import evaluate
-from statistics import mean 
+from statistics import harmonic_mean 
 import argparse
 from ragas.testset.evolutions import simple, reasoning, multi_context
 from ragas.metrics import (
@@ -14,8 +14,6 @@ from ragas.metrics import (
 
 class RetrievalBenchmarking:
     def __init__(self,config,datasets_dir_path):
-        self.config = config
-
         d={}
         
         for df_name in os.listdir(datasets_dir_path):
@@ -23,7 +21,16 @@ class RetrievalBenchmarking:
             d[df_name]=pd.read_csv(os.path.join(datasets_dir_path,df_name))
 
         self.dict_data = d
-    
+
+        config_metrics = config['retriever']['retriever_benchmark_metrics']
+
+        default_metrics = [context_precision,context_recall]        
+        self.filtered_metrics = []
+
+        for metric in default_metrics:
+            if config_metrics[metric.name]:
+                self.filtered_metrics.append(metric)
+
     def validate_dataframe(self):
         """
         Validates the format of the input DataFrame `df_retrieval`.
@@ -34,14 +41,7 @@ class RetrievalBenchmarking:
         max_combo = None
         max_benchmark_avg = 0
         for key, df_retrieval in self.dict_data.items():
-            default_metrics = [context_precision,context_recall]        
             df_retrieval['contexts'] = df_retrieval['contexts'].apply(ast.literal_eval)
-            config_metrics = self.config['retriever']['retriever_benchmark_metrics']
-            filtered_metrics = []
-
-            for metric in default_metrics:
-                if config_metrics[metric.name]:
-                    filtered_metrics.append(metric)
 
             # Check if the input is a DataFrame
             if not isinstance(df_retrieval, pd.DataFrame):
@@ -57,13 +57,16 @@ class RetrievalBenchmarking:
             testsetdf = Dataset.from_pandas(df_retrieval)
             result = evaluate(
                     dataset=testsetdf, 
-                    metrics = filtered_metrics,
+                    metrics = self.filtered_metrics,
                     )
+            # print(f"Performance for{key}: {result}")
             scores_list = []
+
             for metric, score in result.items(): 
                 scores_list.append(score)
-            avg = mean(scores_list)
-            print("average_metrics", avg)
+            
+            avg = harmonic_mean(scores_list)
+
             if avg >= max_benchmark_avg:
                 max_benchmark_avg=avg
                 max_combo=key

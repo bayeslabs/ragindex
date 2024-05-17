@@ -1,8 +1,5 @@
 from langchain.docstore.document import Document
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from langchain_text_splitters import CharacterTextSplitter
-from sentence_transformers import SentenceTransformer
-from transformers import AutoModel, AutoTokenizer
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import torch
 import torch.nn.functional as F
@@ -19,8 +16,7 @@ import yaml
 # load_dotenv()
 
 # os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-from itertools import product
-from tqdm import tqdm
+
 import argparse
 
 class EmbeddingGenerator:
