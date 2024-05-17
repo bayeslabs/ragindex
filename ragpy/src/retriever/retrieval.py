@@ -5,7 +5,7 @@ import yaml
 from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 import os
 from ragpy.src.dataprocessing.data_loader import DataProcessor
-from ragpy.src.generator.generation_benchmarking import SyntheticDataGenerator
+from ragpy.src.generator.generation_benchmarking import SyntheticDataGenerator # type: ignore
 import pandas as pd
 from sentence_transformers import CrossEncoder
 
@@ -28,7 +28,7 @@ class Reranking:
             fpath=s.generate_testset(num_docs=num_questions)
         
         df=pd.read_csv(fpath)
-        col_list=['question','ground_truth','contexts']
+        col_list=['question','ground_truth']
         try:
             if set(col_list).issubset(set(df.columns)):
                 save_dir = self.config["data"]["save_dir"] + "/retrieved_data/"

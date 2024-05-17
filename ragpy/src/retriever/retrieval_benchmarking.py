@@ -15,6 +15,7 @@ from ragas.metrics import (
 class RetrievalBenchmarking:
     def __init__(self,config,datasets_dir_path):
         self.config = config
+
         d={}
         
         for df_name in os.listdir(datasets_dir_path):
@@ -52,6 +53,7 @@ class RetrievalBenchmarking:
             if not set(required_columns).issubset(df_retrieval.columns):
                 print("DataFrame is missing one or more required columns.")
                 return False
+            
             testsetdf = Dataset.from_pandas(df_retrieval)
             result = evaluate(
                     dataset=testsetdf, 
@@ -62,13 +64,14 @@ class RetrievalBenchmarking:
                 scores_list.append(score)
             avg = mean(scores_list)
             print("average_metrics", avg)
-            if avg > max_benchmark_avg:
+            if avg >= max_benchmark_avg:
                 max_benchmark_avg=avg
                 max_combo=key
 
         for key,df in self.dict_data.items():
             if key == max_combo:
                 return df,max_combo
+
 
              
             
