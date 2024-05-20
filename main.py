@@ -11,7 +11,6 @@ import tqdm,json
 
 # os.environ["OPENAI_API_KEY"] = ""
 # os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
-
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Ragpy")
@@ -27,6 +26,8 @@ if __name__ == "__main__":
 
 
     # Retrieval
+    parser.add_argument('--reranker_methods', nargs='+', choices=['cross_encoder', 'flashrank'], default='cross_encoder',
+                        help='The reranker method to use')
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
     parser.add_argument('--benchmark_data_path',help="Path to the benchmarking dataset in csv")
     parser.add_argument('--save_dir',help='Directory to save all the results like synthetic data,generated data and the predicted responses')
@@ -74,6 +75,8 @@ if __name__ == "__main__":
         config["retriever"]["vector_store"]["persist_directory"][0]=args.persist_dir
 
     # for retrieving top documents
+    if args.reranker_methods:
+        config["retriever"]["rerankers"] = args.reranker_methods
     if args.top_k:
         config["retriever"]["top_k"] = int(args.top_k)
     if args.benchmark_data_path:
@@ -108,20 +111,16 @@ if __name__ == "__main__":
                config["data"]["save_dir"] + "/generated_data/"]
 
     for folder in folders:
-        try:
-            for filename in os.listdir(folder):
+        for filename in os.listdir(folder):
 
-                file_path = os.path.join(folder, filename)
+            file_path = os.path.join(folder, filename)
 
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
 
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
-        except FileNotFoundError:
-            continue
-    
     processor = DataProcessor(config)
     
     chunks = processor.process_data()
@@ -133,7 +132,7 @@ if __name__ == "__main__":
 
     print("dbs in main",dbs)
 
-    reranker=Reranking(config)
+    reranker=Reranking(config) 
 
     if args.num_questions:
       retrieved_data_path=reranker.ret(chunks,config["retriever"]["top_k"],config,dict_db=dbs, num_questions=int(args.num_questions))
