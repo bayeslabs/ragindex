@@ -11,6 +11,7 @@ import tqdm,json
 
 # os.environ["OPENAI_API_KEY"] = ""
 # os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Ragpy")
@@ -107,16 +108,20 @@ if __name__ == "__main__":
                config["data"]["save_dir"] + "/generated_data/"]
 
     for folder in folders:
-        for filename in os.listdir(folder):
+        try:
+            for filename in os.listdir(folder):
 
-            file_path = os.path.join(folder, filename)
+                file_path = os.path.join(folder, filename)
 
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
 
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
 
+        except FileNotFoundError:
+            continue
+    
     processor = DataProcessor(config)
     
     chunks = processor.process_data()
