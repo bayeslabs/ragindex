@@ -18,7 +18,7 @@ class Reranking:
         self.cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
         self.flashrank_reranker = FlashrankRerank()  # Initialize FlashRank reranker
 
-    def ret(self, data, top_k, config, dict_db=None):
+    def ret(self, data, top_k, config, dict_db=None,num_questions=None):
         reranker_methods = self.config["retriever"]["rerankers"]
         if isinstance(reranker_methods, str):
             reranker_methods = [reranker_methods]
