@@ -15,6 +15,7 @@ class CustomPromptTemplate:
         """
         self.domain = domain 
         self.custom_prompt_var=custom_prompt
+        
 
     def specific_prompt(self):
         """
@@ -36,6 +37,32 @@ class CustomPromptTemplate:
 
         Helpful Answer:"""
         return prompt
+
+    def cot_prompt_for_llm(self):
+
+
+        # Start with a system message that instructs the LLM to generate a CoT-style prompt
+        system_message = "You are an advanced language model capable of generating insightful and detailed responses. For the following question, please demonstrate your ability to engage in a Chain of Thought (CoT) process. Break down the question into its core elements, analyze each element thoroughly, and then synthesize your insights to provide a comprehensive and logically structured answer."
+        
+        # Construct the prompt with the domain and query
+        prompt = f"""{system_message}\n\nDomain: {self.domain}\nQuestion: {{question}}\ncontext:{{context}}\n Please proceed as follows:"""
+        
+        # Add steps to guide the CoT process
+        steps = [
+            "1. Identify the key components of the question.",
+            "2. Analyze each component individually, considering its significance and potential implications.",
+            "3. Synthesize the analysis to understand the overall context and purpose of the question.",
+            "4. Formulate a hypothesis or initial understanding based on the synthesized analysis.",
+            "5. Test the hypothesis against known facts or additional research, refining as necessary.",
+            "6. Conclude with a clear and concise answer, supported by the reasoning outlined above."
+        ]
+        
+        # Append the steps to the prompt
+        for step in steps:
+            prompt += f"\n{step}"
+        
+        return prompt
+
 
     def general_prompt(self):
         prompt = """You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
@@ -67,6 +94,8 @@ class CustomPromptTemplate:
             prompt = self.specific_prompt()
         elif prompt_type == "custom":
             prompt = self.custom_prompt(self.custom_prompt_var)
+        elif prompt_type =="cot":
+            prompt = self.cot_prompt_for_llm()  
         else:
             prompt = self.general_prompt()
         custom_rag_prompt = PromptTemplate.from_template(prompt)
@@ -80,9 +109,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate a custom prompt for a specific domain.')
     parser.add_argument('--domain', type=str, default='Life Science', nargs='?',
                         help='The domain for which the prompt is created like healthcare,life science finance etc Default is "General QA Bot".')
-    parser.add_argument('--prompt_type', type=str, choices=['specific', 'custom', 'general'], default='general', nargs='?',
+    parser.add_argument('--prompt_type', type=str, choices=['specific', 'custom', 'general','cot'], default='cot', nargs='?',
                         help='The type of prompt to generate. Can be "specific", "custom", or "general". Default is "general".')
     parser.add_argument('--prompt',type=str,help='give your custom prompt')
+    query="Who is the CEO of Microsoft?"
 
    
     # Parse the arguments
@@ -102,8 +132,14 @@ if __name__ == "__main__":
                 
             else:
                 raise ValueError("Domain is needed for specific prompt type")
+        elif args.prompt_type.lower()=="cot":  
+            if args.domain:
+                 prompt = CustomPromptTemplate(domain=args.domain)
+            else:
+                raise ValueError("Domain is needed for specific prompt type")
         else:
             prompt = CustomPromptTemplate()
+            
         
     # Generate the prompt based on the specified type or default
     prompt = prompt.main(args.prompt_type)
