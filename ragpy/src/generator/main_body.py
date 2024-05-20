@@ -1,20 +1,24 @@
 import sys
-from ragpy.src.generator.models_module import models_mod as mm
+import argparse
+import os
+import pathlib
+import pandas as pd
+import requests
+import yaml
+from itertools import product
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.chains import RetrievalQA
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.embeddings import HuggingFaceInstructEmbeddings
-from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings, SentenceTransformerEmbeddings
 from ragpy.src.generator.prompt import CustomPromptTemplate
-import pandas as pd 
-import pathlib   
-from itertools import product 
-import yaml
-import argparse     
+from langchain_community.chat_models import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma,FAISS
-import os 
+from langchain_community.vectorstores import Chroma, FAISS
+from ragpy.src.generator.models_module import models_mod as mm
+os.environ["OPENAI_API_KEY"] = " "
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = " "
+
+
 class Generator_response(): 
     def __init__(self,db_path=None,retriever=None,query=None,
                 max_tokens = None,temperature= None,config = None):
@@ -96,8 +100,7 @@ class Generator_response():
                 {"context": retriever | self.format_docs, "question": RunnablePassthrough()}
                 | prompt
                 | models
-                | StrOutputParser()
-                
+                | StrOutputParser()    
                 )
         else:
             rag_chain = RetrievalQA.from_chain_type(
@@ -119,36 +122,33 @@ class Generator_response():
             print(e)
             sys.exit(1)  # Exit with a non-zero status code
             # return "both retriever and db are not provided please provide any one of them"
-
         objects = mm(config=self.data)
         models = {} # Dictionary to store model instances
         try:
             temp = self.data['generator']['model_config']['temperature']
-            model_type = self.data['generator']['models']['model_type']
-            if model_type == "openai":
-                model_list = self.data['generator']['models']['open_ai_model']
-                # model_list = ["gpt-3.5-turbo"]
-              
-
-                combinations = product(temp, model_list)
-                for i in combinations:
-                    model_key = f"openai_{i[1]}_{i[0]}" # Unique key for each model instance
-                    models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
-            else:
-                model_list = self.data['generator']['models']['hugging_face_model']
-                combinations = product(temp, model_list)
-                for i in combinations:
-                    model_key = f"hugging_face_{i[1]}_{i[0]}" # Unique key for each model instance
-                    models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
+            model_names=["tiiuae/falcon-7b-instruct","gpt-3.5-turbo"]
+            for model_type in model_names:
+                prefix = "gpt"
+                if model_type.startswith(prefix):
+                    combinations = product(temp, [model_type])
+                    for i in combinations:
+                        model_type="openai"
+                        model_key = f"openai_{i[1]}_{i[0]}" # Unique key for each model instance
+                        models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
+                else:
+                    combinations = product(temp, [model_type])
+                    for i in combinations:
+                        model_type="hugging_face"
+                        model_key = f"hugging_face_{i[1]}_{i[0]}" # Unique key for each model instance
+                        models[model_key] = objects.main(model_type, model_name=i[1], temp=i[0])
 
             if datatype == "string_datatype":
                 full_prompt = prompt.format(context=retriever, question=query)
                 results = {}
-                if model_type == "openai":
-                    for model_key, model in models.items():
+                for model_key, model in models.items():
+                    if model_key.startswith("openai"):
                         results[model_key] = model.invoke(full_prompt).content
-                else:
-                    for model_key, model in models.items():
+                    else:
                         results[model_key] = model.invoke(full_prompt)
                 return results
             else:
@@ -167,20 +167,20 @@ if __name__=="__main__":
         # Argument parser setup
     parser = argparse.ArgumentParser(description='Generator Response for RAG')
     parser.add_argument('--query', default='What is hello?', help='The query for which main logic is executed.')
-    parser.add_argument('--context', nargs='+', help='The context for which the query is asked.')
-    parser.add_argument('--model_type', type=str, default='hugging_face', help='The type of model to use. Can be "openai", "fireworks", or "hugging_face".')
+    parser.add_argument('--context', nargs='+',default="It is a way to gratitude", help='The context for which the query is asked.')
     parser.add_argument('--chain_type', type=str, default='simple', help='The type of chain to use. Can be "simple", or "retrieval"')
     parser.add_argument('--domain', type=str, default='Healthcare', help='It can be anything.')
-    parser.add_argument('--prompt_type', type=str, default='general', help='The type of prompt to use. Can be "general","custom" or "specific",')
+    parser.add_argument('--prompt_type', type=str, default='cot', help='The type of prompt to use. Can be "general","custom" or "specific",')
     parser.add_argument('--temperature',nargs='+',default=[0.7,0.1],help="Temperature of the model. Default is 0.7.")
     parser.add_argument('--repo_id',type=str,help="Hugging face repo id")
     parser.add_argument('--embeddings', nargs='+', help="List of embedding options available are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
     parser.add_argument('--db_path',type=str,help="Path of the db")
-                        # Parse arguments
+    parser.add_argument('--model_names', nargs='+',default=["gpt-3.5-turbo","tiiuae/falcon-7b-instruct"], help='List of model names to use. Example: --model_names gpt-3.5-turbo tiiuae/falcon-7b-instruct')
+
+# Parse arguments
     args = parser.parse_args()
     # Check if provided arguments match expected values in the config file
-    if args.model_type:
-        data["generator"]["models"]["model_type"] = args.model_type
+
     if args.chain_type:
         data["generator"]["chain_type"] = args.chain_type   
     if args.domain:   
@@ -197,10 +197,11 @@ if __name__=="__main__":
         data["retriever"]["vector_store"]["persist_directory"] = args.db_path
 
     if args.context and args.query:
-        rag_object = Generator_response(retriever=args.context,config=data,query=args.query,db=data["retriever"]["vector_store"]["persist_directory"])
+        rag_object = Generator_response(retriever=args.context,config=data,query=args.query)
     elif args.db_path:
         rag_object = Generator_response(config=data,query=args.query,db_path=args.db_path)
     else:
         raise ValueError("both retriever and db path are not provided")
     results = rag_object.main(args.query)
     print("Results from model:",results) 
+   
