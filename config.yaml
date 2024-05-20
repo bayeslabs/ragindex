@@ -11,7 +11,7 @@ retriever:
     database: [Chroma]
     persist_directory: [./ragpy/vector_stores/]
     chunks: ["this is my 1st chunk", "this is my second chunk"]
-  n_rerankers: 1
+  rerankers: [cross_encoder]
   retriever_benchmark_metrics:
     context_precision: True
     context_recall: False
