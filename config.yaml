@@ -1,7 +1,7 @@
 data:
-  corpus: [./ragpy/data/sample_data/rag_for_llms.pdf]
+  corpus: [./ragindex/data/sample_data/rag_for_llms.pdf]
   benchmark_data: ''
-  save_dir: "./ragpy/data"
+  save_dir: "./ragindex/data"
 retriever:
   chunk_size: 400
   text_overlap: 50
@@ -9,7 +9,7 @@ retriever:
   vector_store:
     embedding: [all_minilm_embeddings]
     database: [Chroma]
-    persist_directory: [./ragpy/vector_stores/]
+    persist_directory: [./ragindex/vector_stores/]
     chunks: ["this is my 1st chunk", "this is my second chunk"]
   rerankers: [cross_encoder]
   retriever_benchmark_metrics:

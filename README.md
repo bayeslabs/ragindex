@@ -1,7 +1,7 @@
-# RAG-Py
+# RAGINDEX
 
 # Introduction
-Ragpy is a python framework which streamlines the process of developing efficient and effective Retrieval Augmented Generation pipelines. The core idea behind this framework is to provide complete freedom to the user during the selection of components for the RAG pipeline, followed by a series of benchmarking at every crucial stage to provide the best combination of components, backed with quantitative metrics. Ragpy is currently a work in progress. It supports a variety of popular libraries and LLMs with support for other frameworks on the way. Overall, Ragpy enhances the process of developing accurate RAG pipelines while also being time efficient.  
+Ragindex is a python framework which streamlines the process of developing efficient and effective Retrieval Augmented Generation pipelines. The core idea behind this framework is to provide complete freedom to the user during the selection of components for the RAG pipeline, followed by a series of benchmarking at every crucial stage to provide the best combination of components, backed with quantitative metrics. Ragindex is currently a work in progress. It supports a variety of popular libraries and LLMs with support for other frameworks on the way. Overall, Ragindex enhances the process of developing accurate RAG pipelines while also being time efficient.  
 
 ## Prerequisites
 Python 3.10
@@ -10,13 +10,13 @@ Python 3.10
 
 1. Clone the repository:  
    ```bash
-   ! git clone https://github.com/bayeslabs/Ragpy.git
-   cd ./Ragpy
+   ! git clone https://github.com/bayeslabs/ragindex.git
+   cd ./Ragindex
    ```
 
 2. Install the required packages:
    ```bash
-   ! pip install -e .
+   ! pip install ragindex
    ```
 
 ## Usage
@@ -52,16 +52,16 @@ Run the script main.py with  command-line argument
 python main.py --config ./config.yaml --user_files /path/to/files --chunk_size 400 --top_k 5
 ```
 
-## Executing RAGPY
+## Executing Ragindex
 
 Ensure you have the necessary API keys set up:
 - `OPENAI_API_KEY`: Your OpenAI API key
 - `HUGGINGFACEHUB_API_TOKEN`: Your Hugging Face Hub API token
 
-Run RAGPY with the desired configuration:
+Run Ragindex with the desired configuration:
 ```bash
 python main.py --config path/to/config.yaml
 ```
 
 ## Configuration
-Customize the behavior of RAGpy using the `config.yaml` file. Refer to the configuration file for detailed options and descriptions.
+Customize the behavior of Ragindex using the `config.yaml` file. Refer to the configuration file for detailed options and descriptions.

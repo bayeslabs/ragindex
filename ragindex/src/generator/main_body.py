@@ -10,11 +10,11 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings, SentenceTransformerEmbeddings
-from ragpy.src.generator.prompt import CustomPromptTemplate
+from ragindex.src.generator.prompt import CustomPromptTemplate
 from langchain_community.chat_models import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma, FAISS
-from ragpy.src.generator.models_module import models_mod as mm
+from ragindex.src.generator.models_module import models_mod as mm
 os.environ["OPENAI_API_KEY"] = " "
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = " "
 

@@ -1,11 +1,11 @@
 import os, ast, shutil
-from ragpy.src.dataprocessing.data_loader import DataProcessor
-from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
-from ragpy.src.retriever.retrieval import Reranking
-from ragpy.src.retriever.retrieval_benchmarking import RetrievalBenchmarking
+from ragindex.src.dataprocessing.data_loader import DataProcessor
+from ragindex.src.embeddings_creation.embedding_generator import EmbeddingGenerator
+from ragindex.src.retriever.retrieval import Reranking
+from ragindex.src.retriever.retrieval_benchmarking import RetrievalBenchmarking
 import argparse,yaml
-from ragpy.src.generator.main_body import Generator_response
-from ragpy.src.generator.generation_benchmarking import Generation_Benchmarking
+from ragindex.src.generator.main_body import Generator_response
+from ragindex.src.generator.generation_benchmarking import Generation_Benchmarking
 import pandas as pd
 import tqdm,json
 
@@ -13,7 +13,7 @@ import tqdm,json
 # os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Ragpy")
+    parser = argparse.ArgumentParser(description="ragindex")
     parser.add_argument("--config", type=str, default="./config.yaml",help="Path to the configuration file")
     parser.add_argument("--user_files", nargs='+', type=str, default=None, help="Path to the user-specified file to be processed")
     parser.add_argument("--chunk_size", type=int, default=400, help="Chunk size for splitting text")

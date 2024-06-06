@@ -1,10 +1,10 @@
 from langchain.docstore.document import Document
 import argparse
 import yaml
-from ragpy.src.embeddings_creation.embedding_generator import EmbeddingGenerator
+from ragindex.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 import os
-from ragpy.src.dataprocessing.data_loader import DataProcessor
-from ragpy.src.generator.generation_benchmarking import SyntheticDataGenerator  # type: ignore
+from ragindex.src.dataprocessing.data_loader import DataProcessor
+from ragindex.src.generator.generation_benchmarking import SyntheticDataGenerator  # type: ignore
 import pandas as pd
 from sentence_transformers import CrossEncoder
 

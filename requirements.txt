@@ -14,3 +14,4 @@ faiss-cpu
 InstructorEmbedding
 langchain_text_splitters
 pandas==2.2.2
+flashrank
