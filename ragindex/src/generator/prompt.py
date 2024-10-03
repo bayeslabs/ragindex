@@ -1,6 +1,8 @@
 import argparse
 from langchain_core.prompts import PromptTemplate
 import yaml
+import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 class CustomPromptTemplate:
     def __init__(self, domain=None,custom_prompt=None):
@@ -41,13 +43,10 @@ class CustomPromptTemplate:
     def cot_prompt_for_llm(self):
 
 
-        # Start with a system message that instructs the LLM to generate a CoT-style prompt
         system_message = "You are an advanced language model capable of generating insightful and detailed responses. For the following question, please demonstrate your ability to engage in a Chain of Thought (CoT) process. Break down the question into its core elements, analyze each element thoroughly, and then synthesize your insights to provide a comprehensive and logically structured answer."
         
-        # Construct the prompt with the domain and query
         prompt = f"""{system_message}\n\nDomain: {self.domain}\nQuestion: {{question}}\ncontext:{{context}}\n Please proceed as follows:"""
         
-        # Add steps to guide the CoT process
         steps = [
             "1. Identify the key components of the question.",
             "2. Analyze each component individually, considering its significance and potential implications.",
@@ -57,7 +56,6 @@ class CustomPromptTemplate:
             "6. Conclude with a clear and concise answer, supported by the reasoning outlined above."
         ]
         
-        # Append the steps to the prompt
         for step in steps:
             prompt += f"\n{step}"
         
@@ -105,7 +103,6 @@ if __name__ == "__main__":
     with open('./config.yaml', 'r') as file:
         data = yaml.safe_load(file)
         
-    # Create the parser
     parser = argparse.ArgumentParser(description='Generate a custom prompt for a specific domain.')
     parser.add_argument('--domain', type=str, default='Life Science', nargs='?',
                         help='The domain for which the prompt is created like healthcare,life science finance etc Default is "General QA Bot".')
@@ -114,8 +111,7 @@ if __name__ == "__main__":
     parser.add_argument('--prompt',type=str,help='give your custom prompt')
     query="Who is the CEO of Microsoft?"
 
-   
-    # Parse the arguments
+
     args = parser.parse_args() 
     if args.domain:
         data["generator"]["prompt_template"]["domain"] = args.domain
@@ -141,6 +137,5 @@ if __name__ == "__main__":
             prompt = CustomPromptTemplate()
             
         
-    # Generate the prompt based on the specified type or default
     prompt = prompt.main(args.prompt_type)
-    print(prompt)
+    logging.info(prompt)
