@@ -180,7 +180,7 @@ if __name__=="__main__":
     parser.add_argument('--repo_id',type=str,help="Hugging face repo id")
     parser.add_argument('--embeddings', nargs='+', help="List of embedding options available are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
     parser.add_argument('--db_path',type=str,help="Path of the db")
-    parser.add_argument('--model_names', nargs='+',default=["gpt-3.5-turbo","tiiuae/falcon-7b-instruct"], help='List of model names to use. Example: --model_names gpt-3.5-turbo tiiuae/falcon-7b-instruct')
+    parser.add_argument('--model_names', nargs='+',default=["gpt-4o-mini","tiiuae/falcon-7b-instruct"], help='List of model names to use. Example: --model_names gpt-4o-mini tiiuae/falcon-7b-instruct')
 
     args = parser.parse_args()
 
