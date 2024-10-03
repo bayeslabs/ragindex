@@ -32,7 +32,7 @@ class SyntheticDataGenerator:
     def __init__(self, documents, config):
         
         self.documents = documents
-        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-3.5-turbo"
+        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-4o-mini"
         logging.info("model:",model_name)
         self.generator_llm = ChatOpenAI(model=model_name)
         
@@ -80,7 +80,7 @@ class Generation_Benchmarking:
         self.testset_df = testset_df
         metrics = [answer_relevancy, answer_similarity]
         
-        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-3.5-turbo"
+        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-4o-mini"
         logging.info("model:",model_name)
         self.llm = ChatOpenAI(model=model_name)
         config = config['generator']['generation_benchmark_metrics']
