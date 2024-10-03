@@ -11,6 +11,15 @@ from ragas.metrics import (
     context_precision,
     context_recall,
 )
+from ragas.run_config import RunConfig
+from langchain_openai import ChatOpenAI
+import logging
+from dotenv import load_dotenv
+load_dotenv()
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+os.environ["OPENAI_API_KEY"] = ""
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 
 class RetrievalBenchmarking:
     def __init__(self,config,datasets_dir_path):
@@ -23,7 +32,9 @@ class RetrievalBenchmarking:
         self.dict_data = d
 
         config_metrics = config['retriever']['retriever_benchmark_metrics']
-
+        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-3.5-turbo"
+        logging.info("model:",model_name)
+        self.llm=ChatOpenAI(model=model_name,api_key=os.environ.get("OPENAI_API_KEY"))
         default_metrics = [context_precision,context_recall]        
         self.filtered_metrics = []
 
@@ -43,23 +54,25 @@ class RetrievalBenchmarking:
         for key, df_retrieval in self.dict_data.items():
             df_retrieval['contexts'] = df_retrieval['contexts'].apply(ast.literal_eval)
 
-            # Check if the input is a DataFrame
             if not isinstance(df_retrieval, pd.DataFrame):
-                print("Input is not a pandas DataFrame.")
+                logging.info("Input is not a pandas DataFrame.")
                 return False
             
-            # Check if the required columns exist
             required_columns = ["question", "ground_truth","contexts"]
             if not set(required_columns).issubset(df_retrieval.columns):
-                print("DataFrame is missing one or more required columns.")
+                logging.info("DataFrame is missing one or more required columns.")
                 return False
             
             testsetdf = Dataset.from_pandas(df_retrieval)
+            logging.info(testsetdf,self.filtered_metrics)
+            print("evkauation")
             result = evaluate(
                     dataset=testsetdf, 
                     metrics = self.filtered_metrics,
+                    raise_exceptions=False,
+                    llm=self.llm,
+                    run_config=RunConfig(max_workers=4,timeout=10)
                     )
-            # print(f"Performance for{key}: {result}")
             scores_list = []
 
             for metric, score in result.items(): 
@@ -74,8 +87,6 @@ class RetrievalBenchmarking:
         for key,df in self.dict_data.items():
             if key == max_combo:
                 return df,max_combo
-
-
              
             
 if __name__=="__main__":
@@ -91,8 +102,4 @@ if __name__=="__main__":
         config = yaml.load(file, Loader=yaml.FullLoader)
 
     df,max_combo = RetrievalBenchmarking(datasets_dir_path=datasets_dir, config=config).validate_dataframe()
-    print("max cobo found at{}".format(max_combo))
-
-
-
-
+    logging.info("max cobo found at{}".format(max_combo))
