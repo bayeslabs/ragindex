@@ -1,24 +1,20 @@
 from langchain.docstore.document import Document
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
-import torch
-import torch.nn.functional as F
 import os
 import itertools
 from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
-# from sklearn.metrics.pairwise import cosine_similarity
-# import numpy as np
 from langchain_openai import OpenAIEmbeddings
 import yaml
-# from dotenv import load_dotenv
-# load_dotenv()
+import logging
 
-# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-
+from dotenv import load_dotenv
 import argparse
-
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+load_dotenv()
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 class EmbeddingGenerator:
     def __init__(self, config):
         self.config = config
@@ -111,16 +107,17 @@ class EmbeddingGenerator:
                 db.add_documents(docs)
             return db
         else:
-            print("OpenAI API key is not set in the environment variable.")
+            logging.error("OpenAI API key is not set in the environment variable.")
             return None
     
     def generate_databases(self, chunks):
         embedding_methods = self.config["retriever"]["vector_store"]["embedding"]
         vectorstore_option = self.config["retriever"]["vector_store"]["database"]
+        logging.info(embedding_methods,vectorstore_option)
         databases = []
         permutations = list(itertools.product(embedding_methods, vectorstore_option))
         for embedding_method,vectorstore_option in permutations:
-            # print("creating db with embeddings:{} and vector store:{}".format(embedding_method,vectorstore_option))
+            logging.info("creating db with embeddings:{} and vector store:{}".format(embedding_method,vectorstore_option))
             try:
                 if embedding_method == "huggingface_instruct_embeddings":
                     db = self.huggingface_instruct_embeddings(chunks, vectorstore_option)
@@ -140,7 +137,7 @@ class EmbeddingGenerator:
                 }
                 databases.append(di)
             except Exception as e:
-                print(f"Error generating database for {embedding_method} and {vectorstore_option}: {e}")
+                logging.error(f"Error generating database for {embedding_method} and {vectorstore_option}: {e}")
 
         return databases
 
@@ -168,5 +165,4 @@ if __name__ == "__main__":
     dbs = obj.generate_databases(config["retriever"]["vector_store"]["chunks"])
 
     for db in dbs:
-        print(db)
-
+        logging.info(db)
