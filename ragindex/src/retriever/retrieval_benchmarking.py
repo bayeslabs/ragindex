@@ -32,7 +32,7 @@ class RetrievalBenchmarking:
         self.dict_data = d
 
         config_metrics = config['retriever']['retriever_benchmark_metrics']
-        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-3.5-turbo"
+        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-4o-mini"
         logging.info("model:",model_name)
         self.llm=ChatOpenAI(model=model_name,api_key=os.environ.get("OPENAI_API_KEY"))
         default_metrics = [context_precision,context_recall]        
