@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "ragindex"
+version = "0.1.0"
+description = "Ragindex is a Python framework for building efficient Retrieval Augmented Generation (RAG) pipelines. It lets users select components and evaluates each step to find the best setup using metrics. Ragindex supports popular libraries and large language models, with more on the way. The goal is to simplify and speed up RAG pipeline development."
+authors = ["BayesLabs"]
+readme = "README.md"
+package-mode=true
+packages=[
+    {include="ragindex"}
+]
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain = "^0.3.1"
+sentence-transformers = "^3.1.1"
+cohere = "^5.10.0"
+langchain-community = "^0.3.1"
+datasets = "^3.0.1"
+langchain-openai = "^0.2.1"
+langchain-fireworks = "^0.2.0"
+pypdf2 = "^3.0.1"
+chardet = "^5.2.0"
+nltk = "^3.9.1"
+chromadb = "^0.5.9"
+faiss-cpu = "^1.8.0.post1"
+instructorembedding = "^1.0.1"
+langchain-text-splitters = "^0.3.0"
+pandas = "^2.2.3"
+flashrank = "^0.2.9"
+ragas = "0.1.9"
+protobuf = "3.20"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
