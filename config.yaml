@@ -1,6 +1,6 @@
 data:
   corpus: [./ragindex/data/sample_data/rag_for_llms.pdf]
-  benchmark_data: ''
+  benchmark_data: ' '
   save_dir: "./ragindex/data"
 retriever:
   chunk_size: 400
@@ -16,12 +16,13 @@ retriever:
     context_precision: True
     context_recall: False
 generator:
-  context_given: "yes"   #["yes","no"]
+  context_given: "yes"   
   chain_type: "simple"
   models:
     model_type: "hugging_face"
-    open_ai_model: ["gpt-3.5-turbo"]
+    open_ai_model: ["gpt-4o-mini"]
     hugging_face_model: ["tiiuae/falcon-7b-instruct"]
+    
   model_config:
     max_tokens: 256
     temperature: [0.1]

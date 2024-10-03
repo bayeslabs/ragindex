@@ -4,11 +4,11 @@ import yaml
 from ragindex.src.embeddings_creation.embedding_generator import EmbeddingGenerator
 import os
 from ragindex.src.dataprocessing.data_loader import DataProcessor
-from ragindex.src.generator.generation_benchmarking import SyntheticDataGenerator  # type: ignore
+from ragindex.src.generator.generation_benchmarking import SyntheticDataGenerator
 import pandas as pd
 from sentence_transformers import CrossEncoder
-
-# Import required classes for FlashRank reranking
+import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import FlashrankRerank
 
@@ -16,7 +16,7 @@ class Reranking:
     def __init__(self, config):
         self.config = config
         self.cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        self.flashrank_reranker = FlashrankRerank()  # Initialize FlashRank reranker
+        self.flashrank_reranker = FlashrankRerank()
 
     def ret(self, data, top_k, config, dict_db=None,num_questions=None):
         reranker_methods = self.config["retriever"]["rerankers"]
@@ -51,7 +51,7 @@ class Reranking:
 
                 reranked_documents_list = []
                 for reranker_method in reranker_methods: 
-                    print(f"Processing {len(query_docs)} queries with reranker method: {reranker_method}")
+                    logging.info(f"Processing {len(query_docs)} queries with reranker method: {reranker_method}")
                     
                     if reranker_method == 'cross_encoder':
                         reranked_documents = self.rerank_documents_cross_encoder(query_docs, top_k)
@@ -67,16 +67,16 @@ class Reranking:
                 df_name = f'{dict_db[0]["embeddings"]}_{dict_db[0]["vectorstore"]}_{",".join(reranker_methods)}'
                 file_path = save_dir + f"{df_name}.csv"
                 df.to_csv(file_path, index=False, encoding='utf-8')
-                print("Dataframe saved to", file_path)
+                logging.info("Dataframe saved to", file_path)
 
                 return save_dir
 
         except Exception as e:
-            print("Error:", e)
+            logging.info("Error:", e)
             raise ValueError("Dataframe should contain columns in the format of 'question','ground_truth','contexts'")
             
     def rerank_documents_cross_encoder(self, query_docs, top_n):
-        print("executing cross encoder reranking")
+        logging.info("executing cross encoder reranking")
         reranked_documents = []
         for query, documents in query_docs:
             scores = {}
@@ -87,7 +87,7 @@ class Reranking:
         return reranked_documents 
 
     def rerank_documents_flashrank(self, query_docs, vector_store):
-        print("executing flashrank reranking")
+        logging.info("executing flashrank reranking")
         reranked_documents = []
         for query, documents in query_docs:
             retriever = vector_store.as_retriever(search_kwargs={"k": len(documents)})
@@ -130,4 +130,4 @@ if __name__ == "__main__":
     dict_db = obj.generate_databases(chunks)
     m = Reranking(config)
     q = m.ret(chunks, config["retriever"]["top_k"], config, dict_db=dict_db)
-    print(q)
+    logging.info(q)

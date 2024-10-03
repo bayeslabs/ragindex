@@ -13,6 +13,9 @@ from ragas.testset.generator import TestsetGenerator
 from ragas.testset.evolutions import simple, multi_context
 import argparse
 import statistics
+import logging
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 class SyntheticDataGenerator:
     """
@@ -29,8 +32,12 @@ class SyntheticDataGenerator:
     def __init__(self, documents, config):
         
         self.documents = documents
-        self.generator_llm = ChatOpenAI(model="gpt-3.5-turbo-0125",temperature=0.3)
-        self.critic_llm = ChatOpenAI(model="gpt-3.5-turbo-0125",temperature=0.3)
+        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-4o-mini"
+        logging.info("model:",model_name)
+        self.generator_llm = ChatOpenAI(model=model_name)
+        
+        self.critic_llm = ChatOpenAI(model=model_name,temperature=0.3)
+
         self.embeddings = OpenAIEmbeddings()
         self.generator = TestsetGenerator.from_langchain(
             self.generator_llm,
@@ -42,6 +49,7 @@ class SyntheticDataGenerator:
             simple: 0.8,
             multi_context: 0.2,
         }
+        
 
     def generate_testset(self, num_docs=5):
         """
@@ -71,11 +79,17 @@ class Generation_Benchmarking:
     def __init__(self, testset_df, config):
         self.testset_df = testset_df
         metrics = [answer_relevancy, answer_similarity]
+        
+        model_name=config["generator"]["models"]["open_ai_model"][0] or "gpt-4o-mini"
+        logging.info("model:",model_name)
+        self.llm = ChatOpenAI(model=model_name)
         config = config['generator']['generation_benchmark_metrics']
         self.filtered_metrics = []
         for metric in metrics:
             if config[metric.name]:
                 self.filtered_metrics.append(metric)
+        
+        
 
     def run_benchmarks(self):
         """
@@ -99,20 +113,21 @@ class Generation_Benchmarking:
         generator_benchmarks = {}
 
         for col in response_columns:
-            dataset = dataset.rename_column(col, 'answer')
-            generator_benchmarks[col] = evaluate(dataset, metrics=self.filtered_metrics, raise_exceptions=False)
+            if col!="answer":
+                dataset = dataset.rename_column(col, 'answer')
+            else:
+                pass
+            generator_benchmarks[col] = evaluate(dataset, metrics=self.filtered_metrics, raise_exceptions=False,llm=self.llm)
             dataset = dataset.remove_columns('answer')
         
         average_scores = {}
 
-        # print(f"Generation Benchmarks:{generator_benchmarks}")
 
         for combination in generator_benchmarks.keys():
             scores = list(generator_benchmarks[combination].values())
             harmonic_mean = statistics.harmonic_mean(scores)
             average_scores[combination] = harmonic_mean    
         
-        # print(f"Harmonic Mean:{average_scores}")
 
         best_combination = max(average_scores, key=average_scores.get)
 
@@ -137,5 +152,4 @@ if __name__=="__main__":
         
     gen_bench = Generation_Benchmarking(testset_df=save_dir, config=conf).run_benchmarks()
     
-    print(gen_bench)
-    
+    logging.info(gen_bench)

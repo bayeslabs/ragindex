@@ -8,24 +8,25 @@ from ragindex.src.generator.main_body import Generator_response
 from ragindex.src.generator.generation_benchmarking import Generation_Benchmarking
 import pandas as pd
 import tqdm,json
+import logging
+from dotenv import load_dotenv
+load_dotenv()
+os.environ["OPENAI_API_KEY"] = " "
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = " "
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# os.environ["OPENAI_API_KEY"] = ""
-# os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
 if __name__ == "__main__":
-    # Parse command line arguments
     parser = argparse.ArgumentParser(description="ragindex")
     parser.add_argument("--config", type=str, default="./config.yaml",help="Path to the configuration file")
     parser.add_argument("--user_files", nargs='+', type=str, default=None, help="Path to the user-specified file to be processed")
     parser.add_argument("--chunk_size", type=int, default=400, help="Chunk size for splitting text")
     parser.add_argument("--text_overlap", type=int, default=50, help="Text overlap for splitting text")
 
-    # embedding generation
     parser.add_argument("--embedding", nargs='+', help="List of embedding options ,the available options are: huggingface_instruct_embeddings, all_minilm_embeddings, bgem3_embeddings, openai_embeddings")
     parser.add_argument("--vectorstore", nargs='+', help="Vector store option (Chroma or Faiss)")
     parser.add_argument("--persist_dir",type=str,help="path to the vector store persistent directory")
 
 
-    # Retrieval
     parser.add_argument('--reranker_methods', nargs='+', choices=['cross_encoder', 'flashrank'], default='cross_encoder',
                         help='The reranker method to use')
     parser.add_argument('--top_k',help='The number of top documents to be retrieved')
@@ -33,7 +34,6 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir',help='Directory to save all the results like synthetic data,generated data and the predicted responses')
     parser.add_argument('--num_questions',help="Number of questions to be generated in synthetic benchmark dataset", default=None)
 
-    # Generation
     parser.add_argument('--query', default='What is RAG?', help='The query for which main logic is executed.')
     parser.add_argument('--context_given', help='The context for which the query is asked.')
     parser.add_argument('--model_type', type=str, help='The type of model to use. Can be "openai", or "hugging_face".')
@@ -64,7 +64,6 @@ if __name__ == "__main__":
     if args.context_given:
         config["generator"]["context_given"] = args.context_given
 
-    # for embedding generation
     if args.embedding:
         config["retriever"]["vector_store"]["embedding"] = args.embedding
 
@@ -74,7 +73,6 @@ if __name__ == "__main__":
     if args.persist_dir:
         config["retriever"]["vector_store"]["persist_directory"][0]=args.persist_dir
 
-    # for retrieving top documents
     if args.reranker_methods:
         config["retriever"]["rerankers"] = args.reranker_methods
     if args.top_k:
@@ -84,7 +82,6 @@ if __name__ == "__main__":
     if args.save_dir:
         config["data"]["save_dir"]=args.save_dir
 
-    # for synthetic data generation
     if args.num_questions:
         args.num_questions = int(args.num_questions)
     if args.model_type:
@@ -98,14 +95,13 @@ if __name__ == "__main__":
     if args.temperature:
         config["generator"]["model_config"]["temperature"]=args.temperature
     if args.llm_repo_id:
-        config["generator"]["models"]["hugging_face_model"]=args.llm_repo_id
+        config["generator"]["models"]["hugging_face_model"]=[args.llm_repo_id]
     if args.embedding:
         config["retriever"]["vector_store"]["embedding"] = args.embedding
     if args.db_path:
         config["retriever"]["vector_store"]["persist_directory"] = args.db_path
 
 
-    #Resetting directories
     folders = [config["retriever"]["vector_store"]["persist_directory"][0], 
                config["data"]["save_dir"] + "/retrieved_data/",
                config["data"]["save_dir"] + "/generated_data/"]
@@ -130,10 +126,10 @@ if __name__ == "__main__":
     config["retriever"]["vector_store"]["chunks"]=chunks
 
     embedding_generator=EmbeddingGenerator(config)
-
+    logging.info("generating datavases-----------------")
     dbs=embedding_generator.generate_databases(chunks)
 
-    print("dbs in main",dbs)
+    logging.info("dbs in main",dbs)
 
     reranker=Reranking(config) 
 
@@ -142,15 +138,15 @@ if __name__ == "__main__":
     else:
       retrieved_data_path=reranker.ret(chunks,config["retriever"]["top_k"],config,dict_db=dbs)
     
-    print("path is:",retrieved_data_path)
+    logging.info("path is:",retrieved_data_path)
     df,max_combo=RetrievalBenchmarking(datasets_dir_path=retrieved_data_path,config=config).validate_dataframe()
     
-    print("max dataframe is at {}".format(retrieved_data_path+max_combo))
+    logging.info("max dataframe is at {}".format(retrieved_data_path+max_combo))
     db_csv_path=retrieved_data_path+max_combo
     
     df=pd.read_csv(db_csv_path)
     final_response={}
-    
+    logging.info("result",df.shape)
     if config["generator"]["context_given"]=="no":
         for query in  tqdm.tqdm(df["question"].to_list(), desc="Processing queries with vector db and chains"):
             temp_result={}
@@ -169,8 +165,6 @@ if __name__ == "__main__":
 
     temp_generated_df= pd.DataFrame.from_dict(final_response, orient='index')
     temp_generated_df = temp_generated_df.reset_index().rename(columns={'index': 'question'})
-
-    # creating a folder for all generated data
 
     generated_data_dir = config["data"]["save_dir"] + "/generated_data/"
 
@@ -194,4 +188,4 @@ if __name__ == "__main__":
     output_txt_path=generated_data_dir+"Generation_benchmarking_results.txt"
     with open(output_txt_path,"w")as f:
         f.write(json.dumps(gen_bench))
-    print("benchmarked_results are saved to",output_txt_path)
+    logging.info("benchmarked_results are saved to",output_txt_path)
