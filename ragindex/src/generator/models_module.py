@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Select the model type for the generator.')
     parser.add_argument('--model_type', type=str,default = "openai", choices=['openai', 'hugging_face'],
                         help='The type of model to use. Can be "openai", "hugging_face"')
-    parser.add_argument('--model_name', type=str, default="gpt-3.5-turbo", help='The name of the model to use.')
+    parser.add_argument('--model_name', type=str, default="gpt-4o-mini", help='The name of the model to use.')
     parser.add_argument('--temperature', type=float, nargs='+', default=0.7, help="Temperature of the model. Default is 0.7.")
 
     args = parser.parse_args()
