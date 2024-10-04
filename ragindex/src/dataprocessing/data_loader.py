@@ -14,9 +14,7 @@ import logging
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-nltk.download('wordnet')
 nltk.download('stopwords')
-nltk.download('punkt')
 class DataProcessor:
     def __init__(self, config):
         self.config = config
